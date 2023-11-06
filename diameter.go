@@ -89,6 +89,22 @@ func (m *DiameterMessage) XAddAVP(avp string) {
 }
 
 func (d *Diameter) XSend(client *DiameterClient, msg *DiameterMessage) string {
+
+	// TODO extract AVPs and Header from DiameterMessage
+	req := diam.NewRequest(diam.CreditControl, 4, dict.Default)
+	req.NewAVP(avp.SessionID, avp.Mbit, 0, datatype.UTF8String("session-12345"))
+	req.NewAVP(avp.OriginHost, avp.Mbit, 0, datatype.DiameterIdentity("origin.host"))
+	req.NewAVP(avp.OriginRealm, avp.Mbit, 0, datatype.DiameterIdentity("origin.realm"))
+	req.NewAVP(avp.DestinationRealm, avp.Mbit, 0, datatype.DiameterIdentity("dest.realm"))
+	req.NewAVP(avp.DestinationHost, avp.Mbit, 0, datatype.DiameterIdentity("dest.host"))
+	req.NewAVP(avp.UserName, avp.Mbit, 0, datatype.UTF8String("foobar"))
+
+	_, err := req.WriteTo(client.conn)
+	if err != nil {
+		log.Errorf("Error sending request: %v\n", err)
+		panic(err)
+	}
+
 	resp := "Send " + msg.name
 	for _, avp := range msg.avps {
 		resp = resp + " with avp " + avp

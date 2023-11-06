@@ -1,19 +1,13 @@
 import diameter from 'k6/x/diameter';
 
 export let options = {
-  iterations: 2,
+  iterations: 3,
   vus: 1,
 }
 
-// We want a diameter client per VU
-export function setup() {
-  console.log("Setting up diameter client for VU: " + __VU);
-  let client = diameter.NewClient();
-  return { client: client };
-}
+let client = diameter.NewClient();
 
-export default function (data) {
-  let client = data.client;
+export default function () {
 
   // Send CCR
   let msg = diameter.NewMessage("CCR");
