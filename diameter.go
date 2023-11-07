@@ -1,6 +1,7 @@
 package diameter
 
 import (
+	"errors"
 	"net"
 	"time"
 
@@ -9,9 +10,8 @@ import (
 	"github.com/fiorix/go-diameter/v4/diam/datatype"
 	"github.com/fiorix/go-diameter/v4/diam/dict"
 	"github.com/fiorix/go-diameter/v4/diam/sm"
-	"go.k6.io/k6/js/modules"
-
 	log "github.com/sirupsen/logrus"
+	"go.k6.io/k6/js/modules"
 )
 
 func init() {
@@ -24,7 +24,7 @@ func New() *Diameter {
 
 type Diameter struct{}
 
-func (*Diameter) XNewClient() *DiameterClient {
+func (*Diameter) NewClient() (*DiameterClient, error) {
 
 	// TODO make all this configurable later
 	cfg := &sm.Settings{
@@ -40,23 +40,25 @@ func (*Diameter) XNewClient() *DiameterClient {
 	}
 	mux := sm.New(cfg)
 
+	hopIds := make(map[uint32]chan *diam.Message)
+	mux.Handle("CCA", handleCCA(hopIds))
+
 	client := &sm.Client{
 		Dict:               dict.Default,
 		Handler:            mux,
-		MaxRetransmits:     3,
+		MaxRetransmits:     1,
 		RetransmitInterval: time.Second,
 		EnableWatchdog:     true,
 		WatchdogInterval:   5 * time.Second,
 		AuthApplicationID: []*diam.AVP{
-			// Advertise support for credit control application
-			diam.NewAVP(avp.AuthApplicationID, avp.Mbit, 0, datatype.Unsigned32(4)), // RFC 4006
+			diam.NewAVP(avp.AuthApplicationID, avp.Mbit, 0, datatype.Unsigned32(4)),
 		},
 	}
 
 	conn, err := client.DialNetwork("tcp", "localhost:3868")
 	if err != nil {
 		log.Errorf("Error connecting to %s, %v\n", "localhost:3868", err)
-		panic(err)
+		return nil, err
 	}
 
 	log.Infof("Connected to %s\n", "localhost:3868")
@@ -64,10 +66,23 @@ func (*Diameter) XNewClient() *DiameterClient {
 	return &DiameterClient{
 		client: client,
 		conn:   conn,
+		hopIds: hopIds,
+	}, nil
+}
+
+func handleCCA(hopIds map[uint32]chan *diam.Message) diam.HandlerFunc {
+	return func(c diam.Conn, m *diam.Message) {
+		hopByHopID := m.Header.HopByHopID
+		v, exists := hopIds[hopByHopID]
+		if !exists {
+			log.Errorf("Received unexpected CCA with Hop-by-Hop ID %d\n", hopByHopID)
+		} else {
+			v <- m
+		}
 	}
 }
 
-func (*Diameter) XNewMessage(name string) *DiameterMessage {
+func (*Diameter) NewMessage(name string) *DiameterMessage {
 	return &DiameterMessage{
 		name: name,
 	}
@@ -76,6 +91,7 @@ func (*Diameter) XNewMessage(name string) *DiameterMessage {
 type DiameterClient struct {
 	client *sm.Client
 	conn   diam.Conn
+	hopIds map[uint32]chan *diam.Message
 }
 
 type DiameterMessage struct {
@@ -84,13 +100,14 @@ type DiameterMessage struct {
 	avps []string // test
 }
 
-func (m *DiameterMessage) XAddAVP(avp string) {
+func (m *DiameterMessage) AddAVP(avp string) {
 	m.avps = append(m.avps, avp)
 }
 
-func (d *Diameter) XSend(client *DiameterClient, msg *DiameterMessage) string {
+func (d *Diameter) Send(client *DiameterClient, msg *DiameterMessage) (uint32, error) {
 
 	// TODO extract AVPs and Header from DiameterMessage
+
 	req := diam.NewRequest(diam.CreditControl, 4, dict.Default)
 	req.NewAVP(avp.SessionID, avp.Mbit, 0, datatype.UTF8String("session-12345"))
 	req.NewAVP(avp.OriginHost, avp.Mbit, 0, datatype.DiameterIdentity("origin.host"))
@@ -99,15 +116,27 @@ func (d *Diameter) XSend(client *DiameterClient, msg *DiameterMessage) string {
 	req.NewAVP(avp.DestinationHost, avp.Mbit, 0, datatype.DiameterIdentity("dest.host"))
 	req.NewAVP(avp.UserName, avp.Mbit, 0, datatype.UTF8String("foobar"))
 
+	// Keep track of Hop-by-Hop ID
+	hopByHopID := req.Header.HopByHopID
+	client.hopIds[hopByHopID] = make(chan *diam.Message)
+
+	// Send CCR
 	_, err := req.WriteTo(client.conn)
 	if err != nil {
-		log.Errorf("Error sending request: %v\n", err)
-		panic(err)
+		return uint32(0), err
 	}
 
-	resp := "Send " + msg.name
-	for _, avp := range msg.avps {
-		resp = resp + " with avp " + avp
+	// Wait for CCA
+	resp := <-client.hopIds[hopByHopID]
+	//log.Infof("Received CCA \n%s", resp)
+
+	delete(client.hopIds, hopByHopID)
+
+	resultCodeAvp, err := resp.FindAVP(avp.ResultCode, 0)
+	if err != nil {
+		return uint32(0), errors.New("Result-Code AVP not found")
 	}
-	return resp
+	resultCode := resultCodeAvp.Data.(datatype.Unsigned32)
+
+	return uint32(resultCode), nil
 }

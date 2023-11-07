@@ -8,4 +8,4 @@ clean:
 	$(RM) $(BIN)
 
 xk6-diameter:
-	$(XK6) build --with github.com/matrixxsoftware/xk6-diameter=. --output $(BIN)
+	$(XK6) build v0.37.0 --with github.com/matrixxsoftware/xk6-diameter=. --output $(BIN)
