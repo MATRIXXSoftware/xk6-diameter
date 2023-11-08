@@ -23,7 +23,7 @@ require (
 	github.com/onsi/gomega v1.29.0 // indirect
 	github.com/oxtoacart/bpool v0.0.0-20190530202638-03653db5a59c // indirect
 	github.com/serenize/snaker v0.0.0-20201027110005-a7ad2135616e // indirect
-	github.com/sirupsen/logrus v1.9.3 // indirect
+	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/afero v1.1.2 // indirect
 	github.com/stretchr/testify v1.8.0 // indirect
 	golang.org/x/net v0.17.0 // indirect

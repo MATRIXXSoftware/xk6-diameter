@@ -83,8 +83,20 @@ func handleCCA(hopIds map[uint32]chan *diam.Message) diam.HandlerFunc {
 }
 
 func (*Diameter) NewMessage(name string) *DiameterMessage {
+
+	diamMsg := diam.NewRequest(diam.CreditControl, 4, dict.Default)
+
+	// TODO extract AVPs and Header from DiameterMessage
+	diamMsg.NewAVP(avp.SessionID, avp.Mbit, 0, datatype.UTF8String("session-123456"))
+	diamMsg.NewAVP(avp.OriginHost, avp.Mbit, 0, datatype.DiameterIdentity("origin.host"))
+	diamMsg.NewAVP(avp.OriginRealm, avp.Mbit, 0, datatype.DiameterIdentity("origin.realm"))
+	diamMsg.NewAVP(avp.DestinationRealm, avp.Mbit, 0, datatype.DiameterIdentity("dest.realm"))
+	diamMsg.NewAVP(avp.DestinationHost, avp.Mbit, 0, datatype.DiameterIdentity("dest.host"))
+	diamMsg.NewAVP(avp.UserName, avp.Mbit, 0, datatype.UTF8String("foobar"))
+
 	return &DiameterMessage{
-		name: name,
+		name:    name,
+		diamMsg: diamMsg,
 	}
 }
 
@@ -96,25 +108,18 @@ type DiameterClient struct {
 
 type DiameterMessage struct {
 	//header
-	name string   // test
-	avps []string // test
+	name string // test
+
+	diamMsg *diam.Message
 }
 
-func (m *DiameterMessage) AddAVP(avp string) {
-	m.avps = append(m.avps, avp)
+func (m *DiameterMessage) AddAVP(avpCode uint32, value string) {
+	m.diamMsg.NewAVP(avpCode, avp.Mbit, 0, datatype.UTF8String(value))
 }
 
 func (d *Diameter) Send(client *DiameterClient, msg *DiameterMessage) (uint32, error) {
 
-	// TODO extract AVPs and Header from DiameterMessage
-
-	req := diam.NewRequest(diam.CreditControl, 4, dict.Default)
-	req.NewAVP(avp.SessionID, avp.Mbit, 0, datatype.UTF8String("session-12345"))
-	req.NewAVP(avp.OriginHost, avp.Mbit, 0, datatype.DiameterIdentity("origin.host"))
-	req.NewAVP(avp.OriginRealm, avp.Mbit, 0, datatype.DiameterIdentity("origin.realm"))
-	req.NewAVP(avp.DestinationRealm, avp.Mbit, 0, datatype.DiameterIdentity("dest.realm"))
-	req.NewAVP(avp.DestinationHost, avp.Mbit, 0, datatype.DiameterIdentity("dest.host"))
-	req.NewAVP(avp.UserName, avp.Mbit, 0, datatype.UTF8String("foobar"))
+	req := msg.diamMsg
 
 	// Keep track of Hop-by-Hop ID
 	hopByHopID := req.Header.HopByHopID
