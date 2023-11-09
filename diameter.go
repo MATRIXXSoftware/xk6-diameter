@@ -14,15 +14,28 @@ import (
 	"go.k6.io/k6/js/modules"
 )
 
-func init() {
-	modules.Register("k6/x/diameter", New())
-}
-
-func New() *Diameter {
-	return &Diameter{}
-}
-
 type Diameter struct{}
+
+type DiameterClient struct {
+	client *sm.Client
+	conn   diam.Conn
+	hopIds map[uint32]chan *diam.Message
+}
+
+type DiameterMessage struct {
+	//header
+	name string // test
+
+	diamMsg *diam.Message
+	avps    []*DiameterAVP
+}
+
+type DiameterAVP struct {
+	code   uint32
+	flags  uint8
+	vendor uint32
+	data   datatype.Type
+}
 
 func (*Diameter) NewClient() (*DiameterClient, error) {
 
@@ -42,6 +55,7 @@ func (*Diameter) NewClient() (*DiameterClient, error) {
 
 	hopIds := make(map[uint32]chan *diam.Message)
 	mux.Handle("CCA", handleCCA(hopIds))
+	// TODO need to support other diameter CMD
 
 	client := &sm.Client{
 		Dict:               dict.Default,
@@ -71,7 +85,7 @@ func (*Diameter) NewClient() (*DiameterClient, error) {
 }
 
 func handleCCA(hopIds map[uint32]chan *diam.Message) diam.HandlerFunc {
-	return func(c diam.Conn, m *diam.Message) {
+	return func(_ diam.Conn, m *diam.Message) {
 		hopByHopID := m.Header.HopByHopID
 		v, exists := hopIds[hopByHopID]
 		if !exists {
@@ -86,40 +100,39 @@ func (*Diameter) NewMessage(name string) *DiameterMessage {
 
 	diamMsg := diam.NewRequest(diam.CreditControl, 4, dict.Default)
 
-	// TODO extract AVPs and Header from DiameterMessage
-	diamMsg.NewAVP(avp.SessionID, avp.Mbit, 0, datatype.UTF8String("session-123456"))
-	diamMsg.NewAVP(avp.OriginHost, avp.Mbit, 0, datatype.DiameterIdentity("origin.host"))
-	diamMsg.NewAVP(avp.OriginRealm, avp.Mbit, 0, datatype.DiameterIdentity("origin.realm"))
-	diamMsg.NewAVP(avp.DestinationRealm, avp.Mbit, 0, datatype.DiameterIdentity("dest.realm"))
-	diamMsg.NewAVP(avp.DestinationHost, avp.Mbit, 0, datatype.DiameterIdentity("dest.host"))
-	diamMsg.NewAVP(avp.UserName, avp.Mbit, 0, datatype.UTF8String("foobar"))
-
 	return &DiameterMessage{
 		name:    name,
 		diamMsg: diamMsg,
+		avps:    []*DiameterAVP{},
 	}
 }
 
-type DiameterClient struct {
-	client *sm.Client
-	conn   diam.Conn
-	hopIds map[uint32]chan *diam.Message
+func (m *DiameterMessage) AddAVP(code uint32) *DiameterAVP {
+	avp := DiameterAVP{
+		code:   code,
+		flags:  avp.Mbit,
+		vendor: 0,
+		data:   nil, // populate later
+	}
+	m.avps = append(m.avps, &avp)
+	return &avp
 }
 
-type DiameterMessage struct {
-	//header
-	name string // test
-
-	diamMsg *diam.Message
+func (avp *DiameterAVP) XUTF8String(value string) {
+	avp.data = datatype.UTF8String(value)
 }
 
-func (m *DiameterMessage) AddAVP(avpCode uint32, value string) {
-	m.diamMsg.NewAVP(avpCode, avp.Mbit, 0, datatype.UTF8String(value))
+func (avp *DiameterAVP) XDiameterIdentity(value string) {
+	avp.data = datatype.DiameterIdentity(value)
 }
 
 func (d *Diameter) Send(client *DiameterClient, msg *DiameterMessage) (uint32, error) {
 
 	req := msg.diamMsg
+
+	for _, avp := range msg.avps {
+		req.NewAVP(avp.code, avp.flags, avp.vendor, avp.data)
+	}
 
 	// Keep track of Hop-by-Hop ID
 	hopByHopID := req.Header.HopByHopID
@@ -144,4 +157,9 @@ func (d *Diameter) Send(client *DiameterClient, msg *DiameterMessage) (uint32, e
 	resultCode := resultCodeAvp.Data.(datatype.Unsigned32)
 
 	return uint32(resultCode), nil
+}
+
+func init() {
+	diameter := &Diameter{}
+	modules.Register("k6/x/diameter", diameter)
 }
