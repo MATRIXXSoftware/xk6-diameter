@@ -10,12 +10,12 @@ let client = diameter.newClient();
 
 export default function () {
     let msg = diameter.newMessage("CCR");
-    msg.addAVP(263).UTF8String("Session-8888");         // Session ID
-    msg.addAVP(264).DiameterIdentity("origin.host")     // Origin-Host
-    msg.addAVP(296).DiameterIdentity("origin.realm")    // Origin-Realm
-    msg.addAVP(283).DiameterIdentity("dest.host")       // Destination-Host
-    msg.addAVP(293).DiameterIdentity("dest.realm")      // Destination-Realm
-    msg.addAVP(1).UTF8String("ValueFooBar");            // User-Name
+    msg.addAVP().Code(263).Mbit().UTF8String("Session-8888");      // Session ID
+    msg.addAVP().Code(264).DiameterIdentity("origin.host")         // Origin-Host
+    msg.addAVP().Code(296).DiameterIdentity("origin.realm")        // Origin-Realm
+    msg.addAVP().Code(283).DiameterIdentity("dest.host")           // Destination-Host
+    msg.addAVP().Code(293).DiameterIdentity("dest.realm")          // Destination-Realm
+    msg.addAVP().Code(1).Vendor(10415).UTF8String("ValueFooBar");  // User-Name
 
     const response = diameter.send(client, msg);
     console.log("Result Code:", response);

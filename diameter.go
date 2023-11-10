@@ -107,24 +107,54 @@ func (*Diameter) NewMessage(name string) *DiameterMessage {
 	}
 }
 
-func (m *DiameterMessage) AddAVP(code uint32) *DiameterAVP {
+func (m *DiameterMessage) AddAVP() *DiameterAVP {
+	// populate later
 	avp := DiameterAVP{
-		code:   code,
-		flags:  avp.Mbit,
+		code:   0,
+		flags:  0,
 		vendor: 0,
-		data:   nil, // populate later
+		data:   nil,
 	}
 	m.avps = append(m.avps, &avp)
 	return &avp
 }
 
-func (avp *DiameterAVP) XUTF8String(value string) {
-	avp.data = datatype.UTF8String(value)
+func (a *DiameterAVP) XCode(code uint32) *DiameterAVP {
+	a.code = code
+	return a
 }
 
-func (avp *DiameterAVP) XDiameterIdentity(value string) {
-	avp.data = datatype.DiameterIdentity(value)
+func (a *DiameterAVP) XMbit() *DiameterAVP {
+	a.flags = a.flags | avp.Mbit
+	return a
 }
+
+func (a *DiameterAVP) XPbit() *DiameterAVP {
+	a.flags = a.flags | avp.Pbit
+	return a
+}
+
+func (a *DiameterAVP) XVbit() *DiameterAVP {
+	a.flags = a.flags | avp.Vbit
+	return a
+}
+
+func (a *DiameterAVP) XVendor(vendor uint32) *DiameterAVP {
+	a.vendor = vendor
+	return a
+}
+
+func (a *DiameterAVP) XUTF8String(value string) *DiameterAVP {
+	a.data = datatype.UTF8String(value)
+	return a
+}
+
+func (a *DiameterAVP) XDiameterIdentity(value string) *DiameterAVP {
+	a.data = datatype.DiameterIdentity(value)
+	return a
+}
+
+// TODO add more data type
 
 func (d *Diameter) Send(client *DiameterClient, msg *DiameterMessage) (uint32, error) {
 
