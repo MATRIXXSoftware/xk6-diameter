@@ -23,11 +23,10 @@ type DiameterClient struct {
 }
 
 type DiameterMessage struct {
-	//header
 	name string // test
 
 	diamMsg *diam.Message
-	avps    []*DiameterAVP
+	avps    []*DiameterAVP // may need to mutex lock this
 }
 
 type DiameterAVP struct {
@@ -69,17 +68,9 @@ func (*Diameter) NewClient() (*DiameterClient, error) {
 		},
 	}
 
-	conn, err := client.DialNetwork("tcp", "localhost:3868")
-	if err != nil {
-		log.Errorf("Error connecting to %s, %v\n", "localhost:3868", err)
-		return nil, err
-	}
-
-	log.Infof("Connected to %s\n", "localhost:3868")
-
 	return &DiameterClient{
 		client: client,
-		conn:   conn,
+		conn:   nil,
 		hopIds: hopIds,
 	}, nil
 }
@@ -156,7 +147,27 @@ func (a *DiameterAVP) XDiameterIdentity(value string) *DiameterAVP {
 
 // TODO add more data type
 
+func (c *DiameterClient) Connect(address string) error {
+	if c.conn != nil {
+		return nil
+	}
+
+	conn, err := c.client.DialNetwork("tcp", address)
+	if err != nil {
+		log.Errorf("Error connecting to %s, %v\n", "localhost:3868", err)
+		return err
+	}
+	log.Infof("Connected to %s\n", "localhost:3868")
+
+	c.conn = conn
+	return nil
+}
+
 func (d *Diameter) Send(client *DiameterClient, msg *DiameterMessage) (uint32, error) {
+
+	if client.conn == nil {
+		return 0, errors.New("Not connected")
+	}
 
 	req := msg.diamMsg
 

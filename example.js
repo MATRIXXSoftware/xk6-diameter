@@ -3,12 +3,14 @@ import { check } from 'k6';
 
 export let options = {
     iterations: 5,
-    vus: 1,
+    vus: 2,
 }
 
 let client = diameter.newClient();
 
 export default function () {
+    client.connect("localhost:3868")
+
     let msg = diameter.newMessage("CCR");
     msg.addAVP().Code(263).Mbit().UTF8String("Session-8888");      // Session ID
     msg.addAVP().Code(264).DiameterIdentity("origin.host")         // Origin-Host
