@@ -29,6 +29,8 @@ type DiameterMessage struct {
 
 type DataType struct{}
 
+type AVP struct{}
+
 func (*Diameter) NewClient() (*DiameterClient, error) {
 
 	// TODO make all this configurable later
@@ -172,8 +174,10 @@ func (d *DataType) XFloat64(value float64) datatype.Type {
 	return datatype.Float64(value)
 }
 
-func (d *DataType) XGrouped(value string) datatype.Type {
-	return datatype.Grouped(value)
+func (d *DataType) XGrouped(avps []*diam.AVP) datatype.Type {
+	return &diam.GroupedAVP{
+		AVP: avps,
+	}
 }
 
 func (d *DataType) XIPFilterRule(value string) datatype.Type {
@@ -220,7 +224,11 @@ func (d *DataType) XUnsigned64(value uint64) datatype.Type {
 	return datatype.Unsigned64(value)
 }
 
+func (a *AVP) XNew(code uint32, vendor uint32, flags uint8, data datatype.Type) *diam.AVP {
+	return diam.NewAVP(code, flags, vendor, data)
+}
+
 func init() {
-	diameter := &Diameter{}
-	modules.Register("k6/x/diameter", diameter)
+	modules.Register("k6/x/diameter", &Diameter{})
+	modules.Register("k6/x/diameter/avp", &AVP{})
 }
