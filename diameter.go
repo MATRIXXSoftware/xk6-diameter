@@ -23,18 +23,11 @@ type DiameterClient struct {
 }
 
 type DiameterMessage struct {
-	name string // test
-
+	name    string // not exactly useful
 	diamMsg *diam.Message
-	avps    []*DiameterAVP // may need to mutex lock this
 }
 
-type DiameterAVP struct {
-	code   uint32
-	flags  uint8
-	vendor uint32
-	data   datatype.Type
-}
+type DataType struct{}
 
 func (*Diameter) NewClient() (*DiameterClient, error) {
 
@@ -87,66 +80,6 @@ func handleCCA(hopIds map[uint32]chan *diam.Message) diam.HandlerFunc {
 	}
 }
 
-func (*Diameter) NewMessage(name string) *DiameterMessage {
-
-	diamMsg := diam.NewRequest(diam.CreditControl, 4, dict.Default)
-
-	return &DiameterMessage{
-		name:    name,
-		diamMsg: diamMsg,
-		avps:    []*DiameterAVP{},
-	}
-}
-
-func (m *DiameterMessage) AddAVP() *DiameterAVP {
-	// populate later
-	avp := DiameterAVP{
-		code:   0,
-		flags:  0,
-		vendor: 0,
-		data:   nil,
-	}
-	m.avps = append(m.avps, &avp)
-	return &avp
-}
-
-func (a *DiameterAVP) XCode(code uint32) *DiameterAVP {
-	a.code = code
-	return a
-}
-
-func (a *DiameterAVP) XMbit() *DiameterAVP {
-	a.flags = a.flags | avp.Mbit
-	return a
-}
-
-func (a *DiameterAVP) XPbit() *DiameterAVP {
-	a.flags = a.flags | avp.Pbit
-	return a
-}
-
-func (a *DiameterAVP) XVbit() *DiameterAVP {
-	a.flags = a.flags | avp.Vbit
-	return a
-}
-
-func (a *DiameterAVP) XVendor(vendor uint32) *DiameterAVP {
-	a.vendor = vendor
-	return a
-}
-
-func (a *DiameterAVP) XUTF8String(value string) *DiameterAVP {
-	a.data = datatype.UTF8String(value)
-	return a
-}
-
-func (a *DiameterAVP) XDiameterIdentity(value string) *DiameterAVP {
-	a.data = datatype.DiameterIdentity(value)
-	return a
-}
-
-// TODO add more data type
-
 func (c *DiameterClient) Connect(address string) error {
 	if c.conn != nil {
 		return nil
@@ -171,10 +104,6 @@ func (d *Diameter) Send(client *DiameterClient, msg *DiameterMessage) (uint32, e
 
 	req := msg.diamMsg
 
-	for _, avp := range msg.avps {
-		req.NewAVP(avp.code, avp.flags, avp.vendor, avp.data)
-	}
-
 	// Keep track of Hop-by-Hop ID
 	hopByHopID := req.Header.HopByHopID
 	client.hopIds[hopByHopID] = make(chan *diam.Message)
@@ -198,6 +127,97 @@ func (d *Diameter) Send(client *DiameterClient, msg *DiameterMessage) (uint32, e
 	resultCode := resultCodeAvp.Data.(datatype.Unsigned32)
 
 	return uint32(resultCode), nil
+}
+
+func (*Diameter) NewMessage(name string) *DiameterMessage {
+
+	diamMsg := diam.NewRequest(diam.CreditControl, 4, dict.Default)
+
+	return &DiameterMessage{
+		name:    name,
+		diamMsg: diamMsg,
+		//avps:    []*DiameterAVP{},
+	}
+}
+
+func (m *DiameterMessage) XAVP(code uint32, vendor uint32, flags uint8, data datatype.Type) {
+	m.diamMsg.NewAVP(code, flags, vendor, data)
+}
+
+func (*Diameter) XDataType() DataType {
+	return DataType{}
+}
+
+func (d *DataType) XAddress(value string) datatype.Type {
+	return datatype.Address(value)
+}
+
+func (d *DataType) XDiameterIdentity(value string) datatype.Type {
+	return datatype.DiameterIdentity(value)
+}
+
+func (d *DataType) XDiameterURI(value string) datatype.Type {
+	return datatype.DiameterURI(value)
+}
+
+func (d *DataType) XEnumerated(value int32) datatype.Type {
+	return datatype.Enumerated(value)
+}
+
+func (d *DataType) XFloat32(value float32) datatype.Type {
+	return datatype.Float32(value)
+}
+
+func (d *DataType) XFloat64(value float64) datatype.Type {
+	return datatype.Float64(value)
+}
+
+func (d *DataType) XGrouped(value string) datatype.Type {
+	return datatype.Grouped(value)
+}
+
+func (d *DataType) XIPFilterRule(value string) datatype.Type {
+	return datatype.IPFilterRule(value)
+}
+
+func (d *DataType) XIPv4(value string) datatype.Type {
+	return datatype.IPv4(value)
+}
+
+func (d *DataType) XIPv6(value string) datatype.Type {
+	return datatype.IPv6(value)
+}
+
+func (d *DataType) XInteger32(value int32) datatype.Type {
+	return datatype.Integer32(value)
+}
+
+func (d *DataType) XInteger64(value int64) datatype.Type {
+	return datatype.Integer64(value)
+}
+
+func (d *DataType) XOctetString(value string) datatype.Type {
+	return datatype.OctetString(value)
+}
+
+func (d *DataType) XQoSFilterRule(value string) datatype.Type {
+	return datatype.QoSFilterRule(value)
+}
+
+func (d *DataType) XTime(value time.Time) datatype.Type {
+	return datatype.Time(value)
+}
+
+func (d *DataType) XUTF8String(value string) datatype.Type {
+	return datatype.UTF8String(value)
+}
+
+func (d *DataType) XUnsigned32(value uint32) datatype.Type {
+	return datatype.Unsigned32(value)
+}
+
+func (d *DataType) XUnsigned64(value uint64) datatype.Type {
+	return datatype.Unsigned64(value)
 }
 
 func init() {
