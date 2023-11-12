@@ -1,6 +1,6 @@
 import diam from 'k6/x/diameter'
 import avp from 'k6/x/diameter/avp'
-import { avpCode, flags, vendorId } from './diam.js'
+import { avpCode, flags, vendorId } from './diam/dict.js'
 
 import { check } from 'k6'
 
