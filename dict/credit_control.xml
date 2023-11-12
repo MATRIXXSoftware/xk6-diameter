@@ -448,5 +448,8 @@
 			<!-- http://tools.ietf.org/html/rfc4006#section-8.33-->
 			<data type="Unsigned32"/>
 		</avp>
+
+        <vendor id="10415" name="TGPP"/>
+
 	</application>
 </diameter>
