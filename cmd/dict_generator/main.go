@@ -15,20 +15,23 @@ func main() {
 	var dictionary string
 	var output string
 
-	flag.StringVar(&dictionary, "dictionary", "dictionary.xml", "Dictionary")
+	flag.StringVar(&dictionary, "dictionary", "", "Dictionary")
 	flag.StringVar(&output, "output", "const.js", "Output file")
 	flag.Parse()
 
-	file, err := os.Open(dictionary)
-	if err != nil {
-		log.Fatalf("Error opening dictioanry: %s\n", err)
-	}
-	defer file.Close()
-
 	parser := dict.Default
-	parser.Load(file)
-	if err != nil {
-		log.Fatalf("Error parsing dictioanry: %s\n", err)
+
+	if dictionary != "" {
+		file, err := os.Open(dictionary)
+		if err != nil {
+			log.Fatalf("Error opening dictioanry: %s\n", err)
+		}
+		defer file.Close()
+
+		parser.Load(file)
+		if err != nil {
+			log.Fatalf("Error parsing dictioanry: %s\n", err)
+		}
 	}
 
 	w, err := os.OpenFile(output, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0666)

@@ -121,7 +121,7 @@ func (d *Diameter) Send(client *DiameterClient, msg *DiameterMessage) (uint32, e
 
 	// Wait for CCA
 	resp := <-client.hopIds[hopByHopID]
-	log.Infof("Received CCA \n%s", resp)
+	//log.Infof("Received CCA \n%s", resp)
 
 	delete(client.hopIds, hopByHopID)
 
