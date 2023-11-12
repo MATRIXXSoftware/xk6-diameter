@@ -15,13 +15,9 @@ func main() {
 	var dictionary string
 	var output string
 
-	flag.StringVar(&dictionary, "dictionary", "", "Dictionary")
-	flag.StringVar(&output, "output", "dict.js", "Output file")
+	flag.StringVar(&dictionary, "dictionary", "dictionary.xml", "Dictionary")
+	flag.StringVar(&output, "output", "const.js", "Output file")
 	flag.Parse()
-
-	if dictionary == "" {
-		log.Fatalf("Dictionary not found\n")
-	}
 
 	file, err := os.Open(dictionary)
 	if err != nil {
