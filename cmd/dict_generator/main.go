@@ -29,7 +29,8 @@ func main() {
 	}
 	defer file.Close()
 
-	parser, err := dict.NewParser("dict/base.xml", dictionary)
+	parser := dict.Default
+	parser.Load(file)
 	if err != nil {
 		log.Fatalf("Error parsing dictioanry: %s\n", err)
 	}
@@ -69,9 +70,19 @@ func PrintAvpCode(w io.Writer, parser *dict.Parser) {
 }
 
 func PrintVendorId(w io.Writer, parser *dict.Parser) {
+	vendorIds := make(map[uint32]struct{})
+	exists := struct{}{}
+
 	fmt.Fprintf(w, "export const vendorId = {\n")
 	for _, app := range parser.Apps() {
 		for _, vendor := range app.Vendor {
+			// Remove duplicate vendorId
+			_, found := vendorIds[vendor.ID]
+			if found {
+				continue
+			}
+			vendorIds[vendor.ID] = exists
+
 			fmt.Fprintf(w, "    %s: %d,\n", vendor.Name, vendor.ID)
 		}
 	}
