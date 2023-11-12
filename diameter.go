@@ -3,6 +3,7 @@ package diameter
 import (
 	"errors"
 	"net"
+	"os"
 	"time"
 
 	"github.com/fiorix/go-diameter/diam/avp"
@@ -31,7 +32,9 @@ type DataType struct{}
 
 type AVP struct{}
 
-func (*Diameter) NewClient() (*DiameterClient, error) {
+type Dict struct{}
+
+func (*Diameter) XClient() (*DiameterClient, error) {
 
 	// TODO make all this configurable later
 	cfg := &sm.Settings{
@@ -118,7 +121,7 @@ func (d *Diameter) Send(client *DiameterClient, msg *DiameterMessage) (uint32, e
 
 	// Wait for CCA
 	resp := <-client.hopIds[hopByHopID]
-	//log.Infof("Received CCA \n%s", resp)
+	log.Infof("Received CCA \n%s", resp)
 
 	delete(client.hopIds, hopByHopID)
 
@@ -228,7 +231,22 @@ func (a *AVP) XNew(code uint32, vendor uint32, flags uint8, data datatype.Type) 
 	return diam.NewAVP(code, flags, vendor, data)
 }
 
+func (*Dict) Load(dictionary string) error {
+	file, err := os.Open(dictionary)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	dict.Default.Load(file)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func init() {
 	modules.Register("k6/x/diameter", &Diameter{})
 	modules.Register("k6/x/diameter/avp", &AVP{})
+	modules.Register("k6/x/diameter/dict", &Dict{})
 }

@@ -1,6 +1,7 @@
 import diam from 'k6/x/diameter'
 import avp from 'k6/x/diameter/avp'
-import { avpCode, flags, vendorId } from './diam.js'
+import dict from 'k6/x/diameter/dict'
+import { avpCode, flags, vendorId } from './diam/const.js'
 
 import { check } from 'k6'
 
@@ -9,7 +10,11 @@ export let options = {
     vus: 1,
 }
 
-let client = diam.newClient()
+// Load additional custom AVP definition
+dict.load("dict/dictionary.xml")
+
+// Init Client
+let client = diam.Client()
 let dataType = diam.DataType()
 
 export default function () {
