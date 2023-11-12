@@ -784,11 +784,12 @@ export const avpCode = {
     OMCId: 1466,
     TraceCollectionEntity: 1452,
     MDTConfiguration: 1622,
-    // Diameter Sy
-    SLRequestType: 2904,
+    // Extra
+    EventNameCode: 13001,
 }
 
 export const vendorId = {
     TGPP: 10415,
+    Matrixxsoftware: 35838,
 }
 

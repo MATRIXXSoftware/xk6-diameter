@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<diameter>
+	<application id="4" type="auth" name="Extra">
+        <vendor name="Matrixxsoftware" id="35838"/>
+        <avp name="Event-Name-Code" code="13001" vendor-id="35838">
+            <data type="UTF8String"/>
+        </avp> 
+    </application>
+</diameter>
