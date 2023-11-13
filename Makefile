@@ -1,11 +1,17 @@
-XK6 = $(shell which xk6 2>/dev/null)
+GO = $(shell which go 2>/dev/null)
 
-BIN := bin/k6
+.PHONY: all clean xk6 build generator
 
-all: clean xk6-diameter
+all: clean build generator
+
+xk6:
+	go install go.k6.io/xk6/cmd/xk6@latest
+
+generator:
+	$(GO) build -o bin/dict_generator cmd/dict_generator/main.go
+
+build: xk6
+	xk6 build v0.37.0 --with github.com/matrixxsoftware/xk6-diameter=. --output bin/k6
 
 clean:
-	$(RM) $(BIN)
-
-xk6-diameter:
-	$(XK6) build v0.37.0 --with github.com/matrixxsoftware/xk6-diameter=. --output $(BIN)
+	$(RM) bin/k6 bin/dict_generator
