@@ -11,7 +11,7 @@ export let options = {
 }
 
 // Load additional custom AVP definition
-dict.load("dict/dictionary.xml")
+dict.load("dict/extra.xml")
 
 // Init Client
 let client = diam.Client()

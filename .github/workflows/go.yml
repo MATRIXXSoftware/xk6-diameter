@@ -22,8 +22,5 @@ jobs:
     - name: Check out
       uses: actions/checkout@v2
 
-    - name: Install xk6
-      run: go install go.k6.io/xk6/cmd/xk6@latest
-
     - name: Build
       run: make
