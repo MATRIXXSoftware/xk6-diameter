@@ -113,6 +113,9 @@ func (d *Diameter) Send(client *DiameterClient, msg *DiameterMessage) (uint32, e
 	hopByHopID := req.Header.HopByHopID
 	client.hopIds[hopByHopID] = make(chan *diam.Message)
 
+	// Timeout channel
+	timeoutChan := time.After(60 * time.Second)
+
 	// Send CCR
 	_, err := req.WriteTo(client.conn)
 	if err != nil {
@@ -120,7 +123,12 @@ func (d *Diameter) Send(client *DiameterClient, msg *DiameterMessage) (uint32, e
 	}
 
 	// Wait for CCA
-	resp := <-client.hopIds[hopByHopID]
+	var resp *diam.Message
+	select {
+	case resp = <-client.hopIds[hopByHopID]:
+	case <-timeoutChan:
+		return uint32(5012), errors.New("Response timeout")
+	}
 	//log.Infof("Received CCA \n%s", resp)
 
 	delete(client.hopIds, hopByHopID)
