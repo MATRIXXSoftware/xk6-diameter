@@ -101,7 +101,11 @@ func (c *DiameterClient) Connect(address string) error {
 	return nil
 }
 
-func (d *Diameter) Send(client *DiameterClient, msg *DiameterMessage) (uint32, error) {
+func (d *Diameter) Send(
+	client *DiameterClient,
+	msg *DiameterMessage,
+	requestTimeoutMillis int,
+) (uint32, error) {
 
 	if client.conn == nil {
 		return 0, errors.New("Not connected")
@@ -113,8 +117,15 @@ func (d *Diameter) Send(client *DiameterClient, msg *DiameterMessage) (uint32, e
 	hopByHopID := req.Header.HopByHopID
 	client.hopIds[hopByHopID] = make(chan *diam.Message)
 
-	// Timeout channel
-	timeoutChan := time.After(60 * time.Second)
+	// Timeout settings
+	var timeout <-chan time.Time
+	if requestTimeoutMillis == 0 {
+		log.Infof("Sending with default request timeout of 60 seconds")
+		timeout = time.After(60 * time.Second)
+	} else {
+		log.Infof("Sending with request timeout of %d milliseconds", requestTimeoutMillis)
+		timeout = time.After(time.Duration(requestTimeoutMillis) * time.Millisecond)
+	}
 
 	// Send CCR
 	_, err := req.WriteTo(client.conn)
@@ -126,7 +137,7 @@ func (d *Diameter) Send(client *DiameterClient, msg *DiameterMessage) (uint32, e
 	var resp *diam.Message
 	select {
 	case resp = <-client.hopIds[hopByHopID]:
-	case <-timeoutChan:
+	case <-timeout:
 		return uint32(5012), errors.New("Response timeout")
 	}
 	//log.Infof("Received CCA \n%s", resp)
