@@ -120,10 +120,8 @@ func (d *Diameter) Send(
 	// Timeout settings
 	var timeout <-chan time.Time
 	if requestTimeoutMillis == 0 {
-		log.Infof("Sending with default request timeout of 60 seconds")
 		timeout = time.After(60 * time.Second)
 	} else {
-		log.Infof("Sending with request timeout of %d milliseconds", requestTimeoutMillis)
 		timeout = time.After(time.Duration(requestTimeoutMillis) * time.Millisecond)
 	}
 
