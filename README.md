@@ -45,7 +45,7 @@ export default function () {
         avp.New(avpCode.SubscriptionIdType,     0,     flags.Mbit,  dataType.Enumerated(1))
     ]))             
 
-    const response = diam.send(client, msg)
+    const response = client.send(msg)
 
     check(response, {'Result-Code == 2001': r => r == 2001,})
 }
