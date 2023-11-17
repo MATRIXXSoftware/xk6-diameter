@@ -34,6 +34,24 @@ type AVP struct{}
 
 type Dict struct{}
 
+type DiameterConfig struct {
+	// Settings
+	VendorID    datatype.Unsigned32 `json:"vendorID"`
+	ProductName datatype.UTF8String `json:"productName"`
+
+	// Client Config
+	MaxRetransmits     uint          `json:"maxRetransmits"`
+	RetransmitInterval time.Duration `json:"retransmitInterval"`
+	EnableWatchdog     bool          `json:"enableWatchdog"`
+	WatchdogInterval   time.Duration `json:"watchdogInterval"`
+	WatchdogStream     uint          `json:"watchdogStream"`
+
+	// SupportedVendorID           []*diam.AVP   // Supported vendor ID
+	// AcctApplicationID           []*diam.AVP   // Acct applications
+	// AuthApplicationID           []*diam.AVP   // Auth applications
+	// VendorSpecificApplicationID []*diam.AVP   // Vendor specific applications
+}
+
 func (*Diameter) XClient() (*DiameterClient, error) {
 
 	// TODO make all this configurable later
@@ -101,13 +119,9 @@ func (c *DiameterClient) Connect(address string) error {
 	return nil
 }
 
-func (d *Diameter) Send(
-	client *DiameterClient,
-	msg *DiameterMessage,
-	requestTimeoutMillis int,
-) (uint32, error) {
+func (c *DiameterClient) Send(msg *DiameterMessage, requestTimeoutMillis int) (uint32, error) {
 
-	if client.conn == nil {
+	if c.conn == nil {
 		return 0, errors.New("Not connected")
 	}
 
@@ -115,7 +129,7 @@ func (d *Diameter) Send(
 
 	// Keep track of Hop-by-Hop ID
 	hopByHopID := req.Header.HopByHopID
-	client.hopIds[hopByHopID] = make(chan *diam.Message)
+	c.hopIds[hopByHopID] = make(chan *diam.Message)
 
 	// Timeout settings
 	var timeout <-chan time.Time
@@ -126,7 +140,7 @@ func (d *Diameter) Send(
 	}
 
 	// Send CCR
-	_, err := req.WriteTo(client.conn)
+	_, err := req.WriteTo(c.conn)
 	if err != nil {
 		return uint32(0), err
 	}
@@ -134,13 +148,13 @@ func (d *Diameter) Send(
 	// Wait for CCA
 	var resp *diam.Message
 	select {
-	case resp = <-client.hopIds[hopByHopID]:
+	case resp = <-c.hopIds[hopByHopID]:
 	case <-timeout:
 		return uint32(5012), errors.New("Response timeout")
 	}
-	//log.Infof("Received CCA \n%s", resp)
+	//log.Infof("Received CCA \n%s", resp.PrettyDump())
 
-	delete(client.hopIds, hopByHopID)
+	delete(c.hopIds, hopByHopID)
 
 	resultCodeAvp, err := resp.FindAVP(avp.ResultCode, 0)
 	if err != nil {
@@ -158,7 +172,6 @@ func (*Diameter) NewMessage(name string) *DiameterMessage {
 	return &DiameterMessage{
 		name:    name,
 		diamMsg: diamMsg,
-		//avps:    []*DiameterAVP{},
 	}
 }
 
