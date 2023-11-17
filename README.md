@@ -11,13 +11,6 @@ make
 ```
 The Makefile will automatically download [xk6](https://github.com/grafana/xk6), which is required to compile this project.
 
-## Generator
-`bin/dict_generator` is used to generate `diam/const.js`, which contains a list of AVP codes and vendor IDs.
-
-```bash
-./bin/dict_generator -output example/diam/const.js
-```
-
 ## Example
 
 ```js
@@ -54,4 +47,18 @@ export default function () {
 Use your custom k6 binary to run an example k6 script.
 ```bash
 ./bin/k6 run example/example.js
+```
+
+## Generator
+
+There are thousands of AVPs, each with a unique avp-code and vendor-id. To aid readability and enhance the developer experience, we recommend defining them as constants in a separate file, for example, using `diam/const.js`.
+
+You can either create the constant yourself or use the bin/dict_generator CLI tool to generate a full list of AVPs for you. Use the following command:
+```bash
+./bin/dict_generator -output example/diam/const.js
+```
+
+The CLI also supports generating additional AVPs that are not defined in the default list. Simply add the -dictionary flag to include the additional AVP definition:
+```bash
+./bin/dict_generator -output example/diam/const.js -dictionary dict/extra.xml
 ```
