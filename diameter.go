@@ -12,10 +12,7 @@ import (
 	"github.com/fiorix/go-diameter/v4/diam/dict"
 	"github.com/fiorix/go-diameter/v4/diam/sm"
 	log "github.com/sirupsen/logrus"
-	"go.k6.io/k6/js/modules"
 )
-
-type Diameter struct{}
 
 type DiameterClient struct {
 	client *sm.Client
@@ -273,10 +270,4 @@ func (*Dict) Load(dictionary string) error {
 		return err
 	}
 	return nil
-}
-
-func init() {
-	modules.Register("k6/x/diameter", &Diameter{})
-	modules.Register("k6/x/diameter/avp", &AVP{})
-	modules.Register("k6/x/diameter/dict", &Dict{})
 }
