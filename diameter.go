@@ -39,16 +39,19 @@ func (*Diameter) XClient(arg map[string]interface{}) (*DiameterClient, error) {
 		return nil, err
 	}
 
+	hostIPAddresses := []datatype.Address{}
+	for _, ip := range *config.CapabilityExchange.HostIPAddresses {
+		hostIPAddresses = append(hostIPAddresses, datatype.Address(net.ParseIP(ip)))
+	}
+
 	cfg := &sm.Settings{
-		OriginHost:       datatype.DiameterIdentity(*config.CapacityExchange.OriginHost),
-		OriginRealm:      datatype.DiameterIdentity(*config.CapacityExchange.OriginRealm),
-		VendorID:         datatype.Unsigned32(*config.CapacityExchange.VendorID),
-		ProductName:      datatype.UTF8String(*config.CapacityExchange.ProductName),
+		OriginHost:       datatype.DiameterIdentity(*config.CapabilityExchange.OriginHost),
+		OriginRealm:      datatype.DiameterIdentity(*config.CapabilityExchange.OriginRealm),
+		VendorID:         datatype.Unsigned32(*config.CapabilityExchange.VendorID),
+		ProductName:      datatype.UTF8String(*config.CapabilityExchange.ProductName),
 		OriginStateID:    datatype.Unsigned32(time.Now().Unix()),
-		FirmwareRevision: 1,
-		HostIPAddresses: []datatype.Address{
-			datatype.Address(net.ParseIP("127.0.0.1")),
-		},
+		FirmwareRevision: datatype.Unsigned32(*config.CapabilityExchange.FirmwareRevision),
+		HostIPAddresses:  hostIPAddresses,
 	}
 	mux := sm.New(cfg)
 
@@ -64,7 +67,7 @@ func (*Diameter) XClient(arg map[string]interface{}) (*DiameterClient, error) {
 		WatchdogInterval:   *&config.WatchdogInterval.Duration,
 		WatchdogStream:     *config.WatchdogStream,
 		AuthApplicationID: []*diam.AVP{
-			diam.NewAVP(avp.AuthApplicationID, avp.Mbit, 0, datatype.Unsigned32(4)),
+			diam.NewAVP(avp.AuthApplicationID, avp.Mbit, 0, datatype.Unsigned32(4)), // TODO make configurable
 		},
 	}
 

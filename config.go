@@ -6,21 +6,23 @@ import (
 	"time"
 )
 
-type CapacityExchangeConfig struct {
-	VendorID    *uint32 `json:"vendorID"`
-	ProductName *string `json:"productName,omitempty"`
-	OriginHost  *string `json:"originHost,omitempty"`
-	OriginRealm *string `json:"originRealm,omitempty"`
+type DiameterConfig struct {
+	RequestTimeout     *Duration                 `json:"requestTimeout,omitempty"`
+	MaxRetransmits     *uint                     `json:"maxRetransmits,omitempty"`
+	RetransmitInterval *Duration                 `json:"retransmitInterval,omitempty"`
+	EnableWatchdog     *bool                     `json:"enableWatchdog,omitempty"`
+	WatchdogInterval   *Duration                 `json:"watchdogInterval,omitempty"`
+	WatchdogStream     *uint                     `json:"watchdogStream,omitempty"`
+	CapabilityExchange *CapabilityExchangeConfig `json:"capabilityExchange,omitempty"`
 }
 
-type DiameterConfig struct {
-	RequestTimeout     *Duration               `json:"requestTimeout,omitempty"`
-	MaxRetransmits     *uint                   `json:"maxRetransmits,omitempty"`
-	RetransmitInterval *Duration               `json:"retransmitInterval,omitempty"`
-	EnableWatchdog     *bool                   `json:"enableWatchdog,omitempty"`
-	WatchdogInterval   *Duration               `json:"watchdogInterval,omitempty"`
-	WatchdogStream     *uint                   `json:"watchdogStream,omitempty"`
-	CapacityExchange   *CapacityExchangeConfig `json:"capacityExchange,omitempty"`
+type CapabilityExchangeConfig struct {
+	VendorID         *uint32   `json:"vendorID"`
+	ProductName      *string   `json:"productName,omitempty"`
+	OriginHost       *string   `json:"originHost,omitempty"`
+	OriginRealm      *string   `json:"originRealm,omitempty"`
+	FirmwareRevision *uint32   `json:"firmwareRevision,omitempty"`
+	HostIPAddresses  *[]string `json:"hostIPAddresses,omitempty"`
 }
 
 func processConfig(arg map[string]interface{}) (*DiameterConfig, error) {
@@ -52,6 +54,8 @@ func setDiameterConfigDefaults(config *DiameterConfig) {
 	var defaultProductName = "xk6-diameter"
 	var defaultOriginHost = "origin.host"
 	var defaultOriginRealm = "origin.realm"
+	var defaultFirmwareRevision uint32 = 1
+	var defaultHostIPAddresses = []string{"127.0.0.1"}
 
 	// Set defaults for DiameterConfig
 	if config.RequestTimeout == nil {
@@ -73,21 +77,27 @@ func setDiameterConfigDefaults(config *DiameterConfig) {
 		config.WatchdogStream = &defaultWatchdogStream
 	}
 
-	// Set defaults for CapacityExchangeConfig
-	if config.CapacityExchange == nil {
-		config.CapacityExchange = &CapacityExchangeConfig{}
+	// Set defaults for CapabilityExchangeConfig
+	if config.CapabilityExchange == nil {
+		config.CapabilityExchange = &CapabilityExchangeConfig{}
 	}
-	if config.CapacityExchange.VendorID == nil {
-		config.CapacityExchange.VendorID = &defaultVendorID
+	if config.CapabilityExchange.VendorID == nil {
+		config.CapabilityExchange.VendorID = &defaultVendorID
 	}
-	if config.CapacityExchange.ProductName == nil {
-		config.CapacityExchange.ProductName = &defaultProductName
+	if config.CapabilityExchange.ProductName == nil {
+		config.CapabilityExchange.ProductName = &defaultProductName
 	}
-	if config.CapacityExchange.OriginHost == nil {
-		config.CapacityExchange.OriginHost = &defaultOriginHost
+	if config.CapabilityExchange.OriginHost == nil {
+		config.CapabilityExchange.OriginHost = &defaultOriginHost
 	}
-	if config.CapacityExchange.OriginRealm == nil {
-		config.CapacityExchange.OriginRealm = &defaultOriginRealm
+	if config.CapabilityExchange.OriginRealm == nil {
+		config.CapabilityExchange.OriginRealm = &defaultOriginRealm
+	}
+	if config.CapabilityExchange.FirmwareRevision == nil {
+		config.CapabilityExchange.FirmwareRevision = &defaultFirmwareRevision
+	}
+	if config.CapabilityExchange.HostIPAddresses == nil {
+		config.CapabilityExchange.HostIPAddresses = &defaultHostIPAddresses
 	}
 }
 
