@@ -15,9 +15,10 @@ import (
 )
 
 type DiameterClient struct {
-	client *sm.Client
-	conn   diam.Conn
-	hopIds map[uint32]chan *diam.Message
+	client         *sm.Client
+	conn           diam.Conn
+	hopIds         map[uint32]chan *diam.Message
+	requestTimeout time.Duration
 }
 
 type DiameterMessage struct {
@@ -58,9 +59,9 @@ func (*Diameter) XClient(arg map[string]interface{}) (*DiameterClient, error) {
 		Dict:               dict.Default,
 		Handler:            mux,
 		MaxRetransmits:     *config.MaxRetransmits,
-		RetransmitInterval: *config.RetransmitInterval,
+		RetransmitInterval: *&config.RetransmitInterval.Duration,
 		EnableWatchdog:     *config.EnableWatchdog,
-		WatchdogInterval:   *config.WatchdogInterval,
+		WatchdogInterval:   *&config.WatchdogInterval.Duration,
 		WatchdogStream:     *config.WatchdogStream,
 		AuthApplicationID: []*diam.AVP{
 			diam.NewAVP(avp.AuthApplicationID, avp.Mbit, 0, datatype.Unsigned32(4)),
@@ -68,9 +69,10 @@ func (*Diameter) XClient(arg map[string]interface{}) (*DiameterClient, error) {
 	}
 
 	return &DiameterClient{
-		client: client,
-		conn:   nil,
-		hopIds: hopIds,
+		client:         client,
+		conn:           nil,
+		hopIds:         hopIds,
+		requestTimeout: config.RequestTimeout.Duration,
 	}, nil
 }
 
@@ -102,7 +104,7 @@ func (c *DiameterClient) Connect(address string) error {
 	return nil
 }
 
-func (c *DiameterClient) Send(msg *DiameterMessage, requestTimeoutMillis int) (uint32, error) {
+func (c *DiameterClient) Send(msg *DiameterMessage) (uint32, error) {
 
 	if c.conn == nil {
 		return 0, errors.New("Not connected")
@@ -115,12 +117,7 @@ func (c *DiameterClient) Send(msg *DiameterMessage, requestTimeoutMillis int) (u
 	c.hopIds[hopByHopID] = make(chan *diam.Message)
 
 	// Timeout settings
-	var timeout <-chan time.Time
-	if requestTimeoutMillis == 0 {
-		timeout = time.After(60 * time.Second)
-	} else {
-		timeout = time.After(time.Duration(requestTimeoutMillis) * time.Millisecond)
-	}
+	timeout := time.After(c.requestTimeout)
 
 	// Send CCR
 	_, err := req.WriteTo(c.conn)

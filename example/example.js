@@ -15,10 +15,8 @@ dict.load("dict/extra.xml")
 
 // Init Client
 let client = diam.Client({
-    MaxRetransmits: 1,
-    EnableWatchdog: false,
+    requestTimeout: "50ms",
 })
-
 let dataType = diam.DataType()
 
 export default function () {

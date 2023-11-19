@@ -2,9 +2,8 @@ package diameter
 
 import (
 	"encoding/json"
+	"errors"
 	"time"
-
-	log "github.com/sirupsen/logrus"
 )
 
 type CapacityExchangeConfig struct {
@@ -15,10 +14,11 @@ type CapacityExchangeConfig struct {
 }
 
 type DiameterConfig struct {
+	RequestTimeout     *Duration               `json:"requestTimeout,omitempty"`
 	MaxRetransmits     *uint                   `json:"maxRetransmits,omitempty"`
-	RetransmitInterval *time.Duration          `json:"retransmitInterval,omitempty"`
+	RetransmitInterval *Duration               `json:"retransmitInterval,omitempty"`
 	EnableWatchdog     *bool                   `json:"enableWatchdog,omitempty"`
-	WatchdogInterval   *time.Duration          `json:"watchdogInterval,omitempty"`
+	WatchdogInterval   *Duration               `json:"watchdogInterval,omitempty"`
 	WatchdogStream     *uint                   `json:"watchdogStream,omitempty"`
 	CapacityExchange   *CapacityExchangeConfig `json:"capacityExchange,omitempty"`
 }
@@ -36,18 +36,16 @@ func processConfig(arg map[string]interface{}) (*DiameterConfig, error) {
 
 	setDiameterConfigDefaults(&config)
 
-	log.Infof("Config %+v\n", config)
-	log.Infof("CE Config %+v\n", config.CapacityExchange)
-
 	return &config, nil
 }
 
 func setDiameterConfigDefaults(config *DiameterConfig) {
 	// Default values
+	var defaultRequestTimeout = Duration{1 * time.Second}
 	var defaultMaxRetransmits uint = 1
-	var defaultRetransmitInterval = 1 * time.Second
+	var defaultRetransmitInterval = Duration{1 * time.Second}
 	var defaultEnableWatchdog = true
-	var defaultWatchdogInterval = 5 * time.Second
+	var defaultWatchdogInterval = Duration{5 * time.Second}
 	var defaultWatchdogStream uint = 0
 
 	var defaultVendorID uint32 = 13
@@ -56,6 +54,9 @@ func setDiameterConfigDefaults(config *DiameterConfig) {
 	var defaultOriginRealm = "origin.realm"
 
 	// Set defaults for DiameterConfig
+	if config.RequestTimeout == nil {
+		config.RequestTimeout = &defaultRequestTimeout
+	}
 	if config.MaxRetransmits == nil {
 		config.MaxRetransmits = &defaultMaxRetransmits
 	}
@@ -87,5 +88,32 @@ func setDiameterConfigDefaults(config *DiameterConfig) {
 	}
 	if config.CapacityExchange.OriginRealm == nil {
 		config.CapacityExchange.OriginRealm = &defaultOriginRealm
+	}
+}
+
+type Duration struct {
+	time.Duration
+}
+
+func (d Duration) MarshalJSON() ([]byte, error) {
+	return json.Marshal(d.String())
+}
+
+func (d *Duration) UnmarshalJSON(b []byte) error {
+	var v interface{}
+	if err := json.Unmarshal(b, &v); err != nil {
+		return err
+	}
+
+	switch value := v.(type) {
+	case string:
+		var err error
+		d.Duration, err = time.ParseDuration(value)
+		if err != nil {
+			return err
+		}
+		return nil
+	default:
+		return errors.New("invalid duration")
 	}
 }
