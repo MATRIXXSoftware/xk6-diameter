@@ -12,15 +12,13 @@ import (
 	"github.com/fiorix/go-diameter/v4/diam/dict"
 	"github.com/fiorix/go-diameter/v4/diam/sm"
 	log "github.com/sirupsen/logrus"
-	"go.k6.io/k6/js/modules"
 )
 
-type Diameter struct{}
-
 type DiameterClient struct {
-	client *sm.Client
-	conn   diam.Conn
-	hopIds map[uint32]chan *diam.Message
+	client         *sm.Client
+	conn           diam.Conn
+	hopIds         map[uint32]chan *diam.Message
+	requestTimeout time.Duration
 }
 
 type DiameterMessage struct {
@@ -34,60 +32,50 @@ type AVP struct{}
 
 type Dict struct{}
 
-type DiameterConfig struct {
-	// Settings
-	VendorID    datatype.Unsigned32 `json:"vendorID"`
-	ProductName datatype.UTF8String `json:"productName"`
+func (*Diameter) XClient(arg map[string]interface{}) (*DiameterClient, error) {
 
-	// Client Config
-	MaxRetransmits     uint          `json:"maxRetransmits"`
-	RetransmitInterval time.Duration `json:"retransmitInterval"`
-	EnableWatchdog     bool          `json:"enableWatchdog"`
-	WatchdogInterval   time.Duration `json:"watchdogInterval"`
-	WatchdogStream     uint          `json:"watchdogStream"`
+	config, err := processConfig(arg)
+	if err != nil {
+		return nil, err
+	}
 
-	// SupportedVendorID           []*diam.AVP   // Supported vendor ID
-	// AcctApplicationID           []*diam.AVP   // Acct applications
-	// AuthApplicationID           []*diam.AVP   // Auth applications
-	// VendorSpecificApplicationID []*diam.AVP   // Vendor specific applications
-}
+	hostIPAddresses := []datatype.Address{}
+	for _, ip := range *config.CapabilityExchange.HostIPAddresses {
+		hostIPAddresses = append(hostIPAddresses, datatype.Address(net.ParseIP(ip)))
+	}
 
-func (*Diameter) XClient() (*DiameterClient, error) {
-
-	// TODO make all this configurable later
 	cfg := &sm.Settings{
-		OriginHost:       datatype.DiameterIdentity("diam.host"),
-		OriginRealm:      datatype.DiameterIdentity("diam.realm"),
-		VendorID:         13,
-		ProductName:      "xk6-diameter",
+		OriginHost:       datatype.DiameterIdentity(*config.CapabilityExchange.OriginHost),
+		OriginRealm:      datatype.DiameterIdentity(*config.CapabilityExchange.OriginRealm),
+		VendorID:         datatype.Unsigned32(*config.CapabilityExchange.VendorID),
+		ProductName:      datatype.UTF8String(*config.CapabilityExchange.ProductName),
 		OriginStateID:    datatype.Unsigned32(time.Now().Unix()),
-		FirmwareRevision: 1,
-		HostIPAddresses: []datatype.Address{
-			datatype.Address(net.ParseIP("127.0.0.1")),
-		},
+		FirmwareRevision: datatype.Unsigned32(*config.CapabilityExchange.FirmwareRevision),
+		HostIPAddresses:  hostIPAddresses,
 	}
 	mux := sm.New(cfg)
 
 	hopIds := make(map[uint32]chan *diam.Message)
 	mux.Handle("CCA", handleCCA(hopIds))
-	// TODO need to support other diameter CMD
 
 	client := &sm.Client{
 		Dict:               dict.Default,
 		Handler:            mux,
-		MaxRetransmits:     1,
-		RetransmitInterval: time.Second,
-		EnableWatchdog:     true,
-		WatchdogInterval:   5 * time.Second,
+		MaxRetransmits:     *config.MaxRetransmits,
+		RetransmitInterval: *&config.RetransmitInterval.Duration,
+		EnableWatchdog:     *config.EnableWatchdog,
+		WatchdogInterval:   *&config.WatchdogInterval.Duration,
+		WatchdogStream:     *config.WatchdogStream,
 		AuthApplicationID: []*diam.AVP{
-			diam.NewAVP(avp.AuthApplicationID, avp.Mbit, 0, datatype.Unsigned32(4)),
+			diam.NewAVP(avp.AuthApplicationID, avp.Mbit, 0, datatype.Unsigned32(4)), // TODO make configurable
 		},
 	}
 
 	return &DiameterClient{
-		client: client,
-		conn:   nil,
-		hopIds: hopIds,
+		client:         client,
+		conn:           nil,
+		hopIds:         hopIds,
+		requestTimeout: config.RequestTimeout.Duration,
 	}, nil
 }
 
@@ -119,7 +107,7 @@ func (c *DiameterClient) Connect(address string) error {
 	return nil
 }
 
-func (c *DiameterClient) Send(msg *DiameterMessage, requestTimeoutMillis int) (uint32, error) {
+func (c *DiameterClient) Send(msg *DiameterMessage) (uint32, error) {
 
 	if c.conn == nil {
 		return 0, errors.New("Not connected")
@@ -132,12 +120,7 @@ func (c *DiameterClient) Send(msg *DiameterMessage, requestTimeoutMillis int) (u
 	c.hopIds[hopByHopID] = make(chan *diam.Message)
 
 	// Timeout settings
-	var timeout <-chan time.Time
-	if requestTimeoutMillis == 0 {
-		timeout = time.After(60 * time.Second)
-	} else {
-		timeout = time.After(time.Duration(requestTimeoutMillis) * time.Millisecond)
-	}
+	timeout := time.After(c.requestTimeout)
 
 	// Send CCR
 	_, err := req.WriteTo(c.conn)
@@ -273,10 +256,4 @@ func (*Dict) Load(dictionary string) error {
 		return err
 	}
 	return nil
-}
-
-func init() {
-	modules.Register("k6/x/diameter", &Diameter{})
-	modules.Register("k6/x/diameter/avp", &AVP{})
-	modules.Register("k6/x/diameter/dict", &Dict{})
 }

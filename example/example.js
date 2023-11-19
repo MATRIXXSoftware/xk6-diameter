@@ -14,7 +14,9 @@ export let options = {
 dict.load("dict/extra.xml")
 
 // Init Client
-let client = diam.Client()
+let client = diam.Client({
+    requestTimeout: "50ms",
+})
 let dataType = diam.DataType()
 
 export default function () {
