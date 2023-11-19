@@ -14,7 +14,11 @@ export let options = {
 dict.load("dict/extra.xml")
 
 // Init Client
-let client = diam.Client()
+let client = diam.Client({
+    MaxRetransmits: 1,
+    EnableWatchdog: false,
+})
+
 let dataType = diam.DataType()
 
 export default function () {

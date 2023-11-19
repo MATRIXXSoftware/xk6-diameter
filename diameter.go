@@ -31,32 +31,18 @@ type AVP struct{}
 
 type Dict struct{}
 
-type DiameterConfig struct {
-	// Settings
-	VendorID    datatype.Unsigned32 `json:"vendorID"`
-	ProductName datatype.UTF8String `json:"productName"`
+func (*Diameter) XClient(arg map[string]interface{}) (*DiameterClient, error) {
 
-	// Client Config
-	MaxRetransmits     uint          `json:"maxRetransmits"`
-	RetransmitInterval time.Duration `json:"retransmitInterval"`
-	EnableWatchdog     bool          `json:"enableWatchdog"`
-	WatchdogInterval   time.Duration `json:"watchdogInterval"`
-	WatchdogStream     uint          `json:"watchdogStream"`
+	config, err := processConfig(arg)
+	if err != nil {
+		return nil, err
+	}
 
-	// SupportedVendorID           []*diam.AVP   // Supported vendor ID
-	// AcctApplicationID           []*diam.AVP   // Acct applications
-	// AuthApplicationID           []*diam.AVP   // Auth applications
-	// VendorSpecificApplicationID []*diam.AVP   // Vendor specific applications
-}
-
-func (*Diameter) XClient() (*DiameterClient, error) {
-
-	// TODO make all this configurable later
 	cfg := &sm.Settings{
-		OriginHost:       datatype.DiameterIdentity("diam.host"),
-		OriginRealm:      datatype.DiameterIdentity("diam.realm"),
-		VendorID:         13,
-		ProductName:      "xk6-diameter",
+		OriginHost:       datatype.DiameterIdentity(*config.CapacityExchange.OriginHost),
+		OriginRealm:      datatype.DiameterIdentity(*config.CapacityExchange.OriginRealm),
+		VendorID:         datatype.Unsigned32(*config.CapacityExchange.VendorID),
+		ProductName:      datatype.UTF8String(*config.CapacityExchange.ProductName),
 		OriginStateID:    datatype.Unsigned32(time.Now().Unix()),
 		FirmwareRevision: 1,
 		HostIPAddresses: []datatype.Address{
@@ -67,15 +53,15 @@ func (*Diameter) XClient() (*DiameterClient, error) {
 
 	hopIds := make(map[uint32]chan *diam.Message)
 	mux.Handle("CCA", handleCCA(hopIds))
-	// TODO need to support other diameter CMD
 
 	client := &sm.Client{
 		Dict:               dict.Default,
 		Handler:            mux,
-		MaxRetransmits:     1,
-		RetransmitInterval: time.Second,
-		EnableWatchdog:     true,
-		WatchdogInterval:   5 * time.Second,
+		MaxRetransmits:     *config.MaxRetransmits,
+		RetransmitInterval: *config.RetransmitInterval,
+		EnableWatchdog:     *config.EnableWatchdog,
+		WatchdogInterval:   *config.WatchdogInterval,
+		WatchdogStream:     *config.WatchdogStream,
 		AuthApplicationID: []*diam.AVP{
 			diam.NewAVP(avp.AuthApplicationID, avp.Mbit, 0, datatype.Unsigned32(4)),
 		},
