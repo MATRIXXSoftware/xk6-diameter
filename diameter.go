@@ -55,7 +55,7 @@ func (*Diameter) XClient(arg map[string]interface{}) (*DiameterClient, error) {
 	mux := sm.New(cfg)
 
 	hopIds := make(map[uint32]chan *diam.Message)
-	mux.Handle("ALL", handleCCA(hopIds))
+	mux.Handle("ALL", handleResponse(hopIds))
 
 	client := &sm.Client{
 		Dict:               dict.Default,
@@ -78,12 +78,12 @@ func (*Diameter) XClient(arg map[string]interface{}) (*DiameterClient, error) {
 	}, nil
 }
 
-func handleCCA(hopIds map[uint32]chan *diam.Message) diam.HandlerFunc {
+func handleResponse(hopIds map[uint32]chan *diam.Message) diam.HandlerFunc {
 	return func(_ diam.Conn, m *diam.Message) {
 		hopByHopID := m.Header.HopByHopID
 		v, exists := hopIds[hopByHopID]
 		if !exists {
-			log.Errorf("Received unexpected CCA with Hop-by-Hop ID %d\n", hopByHopID)
+			log.Errorf("Received unexpected response with Hop-by-Hop ID %d\n", hopByHopID)
 		} else {
 			v <- m
 		}
@@ -121,20 +121,19 @@ func (c *DiameterClient) Send(msg *DiameterMessage) (uint32, error) {
 	// Timeout settings
 	timeout := time.After(c.requestTimeout)
 
-	// Send CCR
+	// Send Request
 	_, err := req.WriteTo(c.conn)
 	if err != nil {
 		return uint32(0), err
 	}
 
-	// Wait for CCA
+	// Wait for Response
 	var resp *diam.Message
 	select {
 	case resp = <-c.hopIds[hopByHopID]:
 	case <-timeout:
 		return uint32(5012), errors.New("Response timeout")
 	}
-	//log.Infof("Received CCA \n%s", resp.PrettyDump())
 
 	delete(c.hopIds, hopByHopID)
 
@@ -155,6 +154,10 @@ func (*Diameter) NewMessage(cmd uint32, appid uint32) *DiameterMessage {
 
 func (m *DiameterMessage) XAVP(code uint32, vendor uint32, flags uint8, data datatype.Type) {
 	m.diamMsg.NewAVP(code, flags, vendor, data)
+}
+
+func (m *DiameterMessage) Print() string {
+	return m.diamMsg.PrettyDump()
 }
 
 func (*Diameter) XDataType() DataType {
