@@ -16,7 +16,7 @@ The Makefile will automatically download [xk6](https://github.com/grafana/xk6), 
 ```js
 import diam from 'k6/x/diameter'
 import avp from 'k6/x/diameter/avp'
-import { avpCode, flags, vendorId } from './diam/const.js'
+import { cmd, appId, avpCode, flags, vendorId } from './diam/const.js'
 
 let client = diam.Client()
 let dataType = diam.DataType()
@@ -24,7 +24,7 @@ let dataType = diam.DataType()
 export default function () {
     client.connect("localhost:3868")
 
-    let msg = diam.newMessage("CCR");
+    let msg = diam.newMessage(cmd.CreditControl, appId.ChargingControl);
 
     msg.AVP(avpCode.OriginHost,         0,     0,           dataType.DiameterIdentity("origin.host"))
     msg.AVP(avpCode.OriginRealm,        0,     0,           dataType.DiameterIdentity("origin.realm"))
