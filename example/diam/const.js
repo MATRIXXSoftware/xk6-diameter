@@ -7,6 +7,13 @@ export const cmd = {
 	SpendingLimit:                      8388635,
 }
 
+export const appId = {
+	Accounting:                         3,
+	ChargingControl:                    4,
+	Gx:                                 16777238,
+	Sy:                                 16777302,
+}
+
 export const flags = {
 	Vbit:                               0x80,
 	Mbit:                               0x40,

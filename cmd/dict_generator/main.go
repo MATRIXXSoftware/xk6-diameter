@@ -41,9 +41,20 @@ func main() {
 	defer w.Close()
 
 	PrintCmd(w)
+	PrintAppId(w)
 	PrintFlags(w)
 	PrintAvpCode(w, parser)
 	PrintVendorId(w, parser)
+}
+
+func PrintAppId(w io.Writer) {
+	fmt.Fprintf(w, "export const appId = {\n")
+	fmt.Fprintf(w, "	%-35s %d,\n", "Accounting:", 3)
+	fmt.Fprintf(w, "	%-35s %d,\n", "ChargingControl:", 4)
+	fmt.Fprintf(w, "	%-35s %d,\n", "Gx:", 16777238)
+	fmt.Fprintf(w, "	%-35s %d,\n", "Sy:", 16777302)
+	fmt.Fprintf(w, "}\n")
+	fmt.Fprintf(w, "\n")
 }
 
 func PrintCmd(w io.Writer) {

@@ -147,9 +147,9 @@ func (c *DiameterClient) Send(msg *DiameterMessage) (uint32, error) {
 	return uint32(resultCode), nil
 }
 
-func (*Diameter) NewMessage(cmd uint32) *DiameterMessage {
+func (*Diameter) NewMessage(cmd uint32, appid uint32) *DiameterMessage {
 	return &DiameterMessage{
-		diamMsg: diam.NewRequest(cmd, 4, dict.Default),
+		diamMsg: diam.NewRequest(cmd, appid, dict.Default),
 	}
 }
 

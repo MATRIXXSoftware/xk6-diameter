@@ -1,7 +1,7 @@
 import diam from 'k6/x/diameter'
 import avp from 'k6/x/diameter/avp'
 import dict from 'k6/x/diameter/dict'
-import { cmd, avpCode, flags, vendorId } from './diam/const.js'
+import { cmd, appId, avpCode, flags, vendorId } from './diam/const.js'
 
 import { check } from 'k6'
 
@@ -22,7 +22,7 @@ let dataType = diam.DataType()
 export default function () {
     client.connect("localhost:3868")
 
-    let msg = diam.newMessage(cmd.CreditControl);
+    let msg = diam.newMessage(cmd.CreditControl, appId.ChargingControl);
 
     msg.AVP(avpCode.OriginHost,         0,     0,           dataType.DiameterIdentity("origin.host"))
     msg.AVP(avpCode.OriginRealm,        0,     0,           dataType.DiameterIdentity("origin.realm"))
