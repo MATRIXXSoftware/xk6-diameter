@@ -22,7 +22,6 @@ type DiameterClient struct {
 }
 
 type DiameterMessage struct {
-	name    string // not exactly useful
 	diamMsg *diam.Message
 }
 
@@ -34,7 +33,7 @@ type Dict struct{}
 
 func (*Diameter) XClient(arg map[string]interface{}) (*DiameterClient, error) {
 
-	config, err := processConfig(arg)
+	config, err := parseConfig(arg)
 	if err != nil {
 		return nil, err
 	}
@@ -56,7 +55,7 @@ func (*Diameter) XClient(arg map[string]interface{}) (*DiameterClient, error) {
 	mux := sm.New(cfg)
 
 	hopIds := make(map[uint32]chan *diam.Message)
-	mux.Handle("CCA", handleCCA(hopIds))
+	mux.Handle("ALL", handleCCA(hopIds))
 
 	client := &sm.Client{
 		Dict:               dict.Default,
@@ -148,13 +147,9 @@ func (c *DiameterClient) Send(msg *DiameterMessage) (uint32, error) {
 	return uint32(resultCode), nil
 }
 
-func (*Diameter) NewMessage(name string) *DiameterMessage {
-
-	diamMsg := diam.NewRequest(diam.CreditControl, 4, dict.Default)
-
+func (*Diameter) NewMessage(cmd uint32) *DiameterMessage {
 	return &DiameterMessage{
-		name:    name,
-		diamMsg: diamMsg,
+		diamMsg: diam.NewRequest(cmd, 4, dict.Default),
 	}
 }
 

@@ -40,16 +40,29 @@ func main() {
 	}
 	defer w.Close()
 
+	PrintCmd(w)
 	PrintFlags(w)
 	PrintAvpCode(w, parser)
 	PrintVendorId(w, parser)
 }
 
+func PrintCmd(w io.Writer) {
+	fmt.Fprintf(w, "export const cmd = {\n")
+	fmt.Fprintf(w, "	%-35s %d,\n", "AA:", 265)
+	fmt.Fprintf(w, "	%-35s %d,\n", "Accounting:", 271)
+	fmt.Fprintf(w, "	%-35s %d,\n", "CreditControl:", 272)
+	fmt.Fprintf(w, "	%-35s %d,\n", "ReAuth:", 258)
+	fmt.Fprintf(w, "	%-35s %d,\n", "SessionTermination:", 275)
+	fmt.Fprintf(w, "	%-35s %d,\n", "SpendingLimit:", 8388635)
+	fmt.Fprintf(w, "}\n")
+	fmt.Fprintf(w, "\n")
+}
+
 func PrintFlags(w io.Writer) {
 	fmt.Fprintf(w, "export const flags = {\n")
-	fmt.Fprintf(w, "    Vbit: 0x80,\n")
-	fmt.Fprintf(w, "    Mbit: 0x40,\n")
-	fmt.Fprintf(w, "    Pbit: 0x20,\n")
+	fmt.Fprintf(w, "	%-35s 0x%x,\n", "Vbit:", 0x80)
+	fmt.Fprintf(w, "	%-35s 0x%x,\n", "Mbit:", 0x40)
+	fmt.Fprintf(w, "	%-35s 0x%x,\n", "Pbit:", 0x20)
 	fmt.Fprintf(w, "}\n")
 	fmt.Fprintf(w, "\n")
 }
@@ -60,7 +73,7 @@ func PrintAvpCode(w io.Writer, parser *dict.Parser) {
 		fmt.Fprintf(w, "    // %s\n", app.Name)
 		for _, avp := range app.AVP {
 			name := strings.ReplaceAll(avp.Name, "-", "")
-			fmt.Fprintf(w, "    %s: %d,\n", name, avp.Code)
+			fmt.Fprintf(w, "    %-35s %d,\n", name+":", avp.Code)
 		}
 	}
 	fmt.Fprintf(w, "}\n")
@@ -82,7 +95,8 @@ func PrintVendorId(w io.Writer, parser *dict.Parser) {
 			}
 			vendorIds[vendor.ID] = exists
 
-			fmt.Fprintf(w, "    %s: %d,\n", vendor.Name, vendor.ID)
+			fmt.Fprintf(w, "    %-35s %d,\n", vendor.Name+":", vendor.ID)
+			// fmt.Fprintf(w, "    %s: %d,\n", vendor.Name, vendor.ID)
 		}
 	}
 	fmt.Fprintf(w, "}\n")

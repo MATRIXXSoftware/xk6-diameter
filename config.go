@@ -25,7 +25,7 @@ type CapabilityExchangeConfig struct {
 	HostIPAddresses  *[]string `json:"hostIPAddresses,omitempty"`
 }
 
-func processConfig(arg map[string]interface{}) (*DiameterConfig, error) {
+func parseConfig(arg map[string]interface{}) (*DiameterConfig, error) {
 
 	var config DiameterConfig
 	if b, err := json.Marshal(arg); err != nil {
