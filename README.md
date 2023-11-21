@@ -16,7 +16,10 @@ The Makefile will automatically download [xk6](https://github.com/grafana/xk6), 
 ```js
 import diam from 'k6/x/diameter'
 import avp from 'k6/x/diameter/avp'
-import { cmd, appId, avpCode, flags, vendorId } from './diam/const.js'
+import dict from 'k6/x/diameter/dict'
+import { cmd, app, code, flag, vendor } from './diam/const.js'
+
+import { check } from 'k6'
 
 let client = diam.Client()
 let dataType = diam.DataType()
@@ -24,24 +27,24 @@ let dataType = diam.DataType()
 export default function () {
     client.connect("localhost:3868")
 
-    let msg = diam.newMessage(cmd.CreditControl, appId.ChargingControl);
+    let msg = diam.newMessage(cmd.CreditControl, app.ChargingControl);
 
-    msg.AVP(avpCode.OriginHost,         0,     0,           dataType.DiameterIdentity("origin.host"))
-    msg.AVP(avpCode.OriginRealm,        0,     0,           dataType.DiameterIdentity("origin.realm"))
-    msg.AVP(avpCode.DestinationHost,    0,     0,           dataType.DiameterIdentity("dest.host"))
-    msg.AVP(avpCode.DestinationRealm,   0,     0,           dataType.DiameterIdentity("dest.realm"))
-    msg.AVP(avpCode.SessionId,          0,     flags.Mbit,  dataType.UTF8String("Session-8888"))
-    msg.AVP(avpCode.CCRequestType,      0,     flags.Mbit,  dataType.Enumerated(1))
-    msg.AVP(avpCode.CCRequestNumber,    0,     flags.Mbit,  dataType.Unsigned32(1000))
-    msg.AVP(avpCode.SubscriptionId,     0,     flags.Mbit,  dataType.Grouped([
-        avp.New(avpCode.SubscriptionIdData,     0,     flags.Mbit,  dataType.UTF8String("subs-data")),
-        avp.New(avpCode.SubscriptionIdType,     0,     flags.Mbit,  dataType.Enumerated(1))
+    msg.AVP(code.OriginHost,         0,     0,       dataType.DiameterIdentity("origin.host"))
+    msg.AVP(code.OriginRealm,        0,     0,       dataType.DiameterIdentity("origin.realm"))
+    msg.AVP(code.DestinationHost,    0,     0,       dataType.DiameterIdentity("dest.host"))
+    msg.AVP(code.DestinationRealm,   0,     0,       dataType.DiameterIdentity("dest.realm"))
+    msg.AVP(code.SessionId,          0,     flag.M,  dataType.UTF8String("Session-8888"))
+    msg.AVP(code.CCRequestType,      0,     flag.M,  dataType.Enumerated(1))
+    msg.AVP(code.CCRequestNumber,    0,     flag.M,  dataType.Unsigned32(1000))
+    msg.AVP(code.SubscriptionId,     0,     flag.M,  dataType.Grouped([
+        avp.New(code.SubscriptionIdData,     0,     flag.M,  dataType.UTF8String("subs-data")),
+        avp.New(code.SubscriptionIdType,     0,     flag.M,  dataType.Enumerated(1))
     ]))             
 
     const response = client.send(msg)
     console.log("Response: ", response.dump())
 
-    const resultCode = response.findAVP(avpCode.ResultCode, 0)
+    const resultCode = response.findAVP(code.ResultCode, 0)
     check(resultCode, {'Result-Code == 2001': r => r == 2001,})
 }
 ```
