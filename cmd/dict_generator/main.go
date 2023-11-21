@@ -107,7 +107,6 @@ func PrintVendorId(w io.Writer, parser *dict.Parser) {
 			vendorIds[vendor.ID] = exists
 
 			fmt.Fprintf(w, "    %-20s %d,\n", vendor.Name+":", vendor.ID)
-			// fmt.Fprintf(w, "    %s: %d,\n", vendor.Name, vendor.ID)
 		}
 	}
 	fmt.Fprintf(w, "}\n")

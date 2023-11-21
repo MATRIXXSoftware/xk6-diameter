@@ -147,8 +147,13 @@ func (*Diameter) NewMessage(cmd uint32, appid uint32) *DiameterMessage {
 	}
 }
 
+// deprecated
 func (m *DiameterMessage) XAVP(code uint32, vendor uint32, flags uint8, data datatype.Type) {
 	m.diamMsg.NewAVP(code, flags, vendor, data)
+}
+
+func (m *DiameterMessage) Add(a *diam.AVP) {
+	m.diamMsg.AddAVP(a)
 }
 
 func (m *DiameterMessage) Dump() string {
