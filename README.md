@@ -40,8 +40,8 @@ export default function () {
         avp.New(code.SubscriptionIdType,     0,     flag.M,  data.Enumerated(1))
     ])))
 
-    const cca = client.send(msg)
-    console.log("cca: ", cca.dump())
+    const cca = client.send(ccr)
+    console.log("CCA: ", cca.dump())
 
     const resultCode = cca.findAVP(code.ResultCode, 0)
     check(resultCode, {'Result-Code == 2001': r => r == 2001,})
