@@ -49,31 +49,31 @@ func main() {
 
 func PrintAppId(w io.Writer) {
 	fmt.Fprintf(w, "export const app = {\n")
-	fmt.Fprintf(w, "	%-20s %d,\n", "Accounting:", 3)
-	fmt.Fprintf(w, "	%-20s %d,\n", "ChargingControl:", 4)
-	fmt.Fprintf(w, "	%-20s %d,\n", "Gx:", 16777238)
-	fmt.Fprintf(w, "	%-20s %d,\n", "Sy:", 16777302)
+	fmt.Fprintf(w, "    %-20s %d,\n", "Accounting:", 3)
+	fmt.Fprintf(w, "    %-20s %d,\n", "ChargingControl:", 4)
+	fmt.Fprintf(w, "    %-20s %d,\n", "Gx:", 16777238)
+	fmt.Fprintf(w, "    %-20s %d,\n", "Sy:", 16777302)
 	fmt.Fprintf(w, "}\n")
 	fmt.Fprintf(w, "\n")
 }
 
 func PrintCmd(w io.Writer) {
 	fmt.Fprintf(w, "export const cmd = {\n")
-	fmt.Fprintf(w, "	%-20s %d,\n", "AA:", 265)
-	fmt.Fprintf(w, "	%-20s %d,\n", "Accounting:", 271)
-	fmt.Fprintf(w, "	%-20s %d,\n", "CreditControl:", 272)
-	fmt.Fprintf(w, "	%-20s %d,\n", "ReAuth:", 258)
-	fmt.Fprintf(w, "	%-20s %d,\n", "SessionTermination:", 275)
-	fmt.Fprintf(w, "	%-20s %d,\n", "SpendingLimit:", 8388635)
+	fmt.Fprintf(w, "    %-20s %d,\n", "AA:", 265)
+	fmt.Fprintf(w, "    %-20s %d,\n", "Accounting:", 271)
+	fmt.Fprintf(w, "    %-20s %d,\n", "CreditControl:", 272)
+	fmt.Fprintf(w, "    %-20s %d,\n", "ReAuth:", 258)
+	fmt.Fprintf(w, "    %-20s %d,\n", "SessionTermination:", 275)
+	fmt.Fprintf(w, "    %-20s %d,\n", "SpendingLimit:", 8388635)
 	fmt.Fprintf(w, "}\n")
 	fmt.Fprintf(w, "\n")
 }
 
 func PrintFlags(w io.Writer) {
 	fmt.Fprintf(w, "export const flag = {\n")
-	fmt.Fprintf(w, "	%-20s 0x%x, // vendor bit\n", "V:", 0x80)
-	fmt.Fprintf(w, "	%-20s 0x%x, // mandatory bit\n", "M:", 0x40)
-	fmt.Fprintf(w, "	%-20s 0x%x, // private bit\n", "P:", 0x20)
+	fmt.Fprintf(w, "    %-20s 0x%x, // vendor bit\n", "V:", 0x80)
+	fmt.Fprintf(w, "    %-20s 0x%x, // mandatory bit\n", "M:", 0x40)
+	fmt.Fprintf(w, "    %-20s 0x%x, // private bit\n", "P:", 0x20)
 	fmt.Fprintf(w, "}\n")
 	fmt.Fprintf(w, "\n")
 }

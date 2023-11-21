@@ -1,17 +1,17 @@
 export const cmd = {
-	Accounting:          271,
-	CreditControl:       272,
+    Accounting:          271,
+    CreditControl:       272,
 }
 
 export const app = {
-	Accounting:          3,
-	ChargingControl:     4,
+    Accounting:          3,
+    ChargingControl:     4,
 }
 
 export const flag = {
-	V:                   0x80, // vendor bit
-	M:                   0x40, // mandatory bit
-	P:                   0x20, // private bit
+    V:                   0x80, // vendor bit
+    M:                   0x40, // mandatory bit
+    P:                   0x20, // private bit
 }
 export const code = {
     DestinationHost:               293,
