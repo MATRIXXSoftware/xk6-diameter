@@ -39,8 +39,10 @@ export default function () {
     ]))             
 
     const response = client.send(msg)
+    console.log("Response: ", response.dump())
 
-    check(response, {'Result-Code == 2001': r => r == 2001,})
+    const resultCode = response.findAVP(avpCode.ResultCode, 0)
+    check(resultCode, {'Result-Code == 2001': r => r == 2001,})
 }
 ```
 

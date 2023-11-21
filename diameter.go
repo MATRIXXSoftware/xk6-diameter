@@ -2,6 +2,7 @@ package diameter
 
 import (
 	"errors"
+	"fmt"
 	"net"
 	"os"
 	"time"
@@ -106,10 +107,10 @@ func (c *DiameterClient) Connect(address string) error {
 	return nil
 }
 
-func (c *DiameterClient) Send(msg *DiameterMessage) (uint32, error) {
+func (c *DiameterClient) Send(msg *DiameterMessage) (*DiameterMessage, error) {
 
 	if c.conn == nil {
-		return 0, errors.New("Not connected")
+		return nil, errors.New("Not connected")
 	}
 
 	req := msg.diamMsg
@@ -124,7 +125,7 @@ func (c *DiameterClient) Send(msg *DiameterMessage) (uint32, error) {
 	// Send Request
 	_, err := req.WriteTo(c.conn)
 	if err != nil {
-		return uint32(0), err
+		return nil, err
 	}
 
 	// Wait for Response
@@ -132,18 +133,12 @@ func (c *DiameterClient) Send(msg *DiameterMessage) (uint32, error) {
 	select {
 	case resp = <-c.hopIds[hopByHopID]:
 	case <-timeout:
-		return uint32(5012), errors.New("Response timeout")
+		return nil, errors.New("Response timeout")
 	}
 
 	delete(c.hopIds, hopByHopID)
 
-	resultCodeAvp, err := resp.FindAVP(avp.ResultCode, 0)
-	if err != nil {
-		return uint32(0), errors.New("Result-Code AVP not found")
-	}
-	resultCode := resultCodeAvp.Data.(datatype.Unsigned32)
-
-	return uint32(resultCode), nil
+	return &DiameterMessage{diamMsg: resp}, nil
 }
 
 func (*Diameter) NewMessage(cmd uint32, appid uint32) *DiameterMessage {
@@ -156,8 +151,72 @@ func (m *DiameterMessage) XAVP(code uint32, vendor uint32, flags uint8, data dat
 	m.diamMsg.NewAVP(code, flags, vendor, data)
 }
 
-func (m *DiameterMessage) Print() string {
+func (m *DiameterMessage) Dump() string {
 	return m.diamMsg.PrettyDump()
+}
+
+func (m *DiameterMessage) FindAVP(code uint32, vendor uint32) (interface{}, error) {
+	a, err := m.diamMsg.FindAVP(code, vendor)
+	if err != nil {
+		return nil, err
+	}
+	data := a.Data
+
+	// TODO handle groupAVP
+
+	switch data.Type() {
+	case datatype.Integer32Type,
+		datatype.Integer64Type,
+		datatype.Unsigned32Type,
+		datatype.Unsigned64Type,
+		datatype.EnumeratedType:
+		return data, nil
+
+	case datatype.Float32Type,
+		datatype.Float64Type:
+		return data, nil
+
+	case datatype.OctetStringType:
+		return string(data.(datatype.OctetString)), nil
+
+	case datatype.UTF8StringType:
+		return string(data.(datatype.UTF8String)), nil
+
+	case datatype.DiameterIdentityType:
+		return string(data.(datatype.DiameterIdentity)), nil
+
+	case datatype.DiameterURIType:
+		return string(data.(datatype.DiameterURI)), nil
+
+	case datatype.IPFilterRuleType:
+		return string(data.(datatype.IPFilterRule)), nil
+
+	case datatype.QoSFilterRuleType:
+		return string(data.(datatype.QoSFilterRule)), nil
+
+	case datatype.TimeType:
+		return fmt.Sprintf("%s", time.Time(data.(datatype.Time))), nil
+
+	case datatype.AddressType:
+		addr := string(data.(datatype.Address))
+		if ip4 := net.IP(addr).To4(); ip4 != nil {
+			return fmt.Sprintf("%s", net.IP(addr)), nil
+		}
+		if ip6 := net.IP(addr).To16(); ip6 != nil {
+			return fmt.Sprintf("%s", net.IP(addr)), nil
+		}
+		return fmt.Sprintf("%#v, %#v", addr[2:], addr[:2]), nil
+
+	case datatype.IPv4Type:
+		addr := string(data.(datatype.IPv4))
+		return fmt.Sprintf("%s", net.IP(addr)), nil
+
+	case datatype.IPv6Type:
+		addr := string(data.(datatype.IPv6))
+		return fmt.Sprintf("%s", net.IP(addr)), nil
+	}
+
+	return data.String(), nil
 }
 
 func (*Diameter) XDataType() DataType {

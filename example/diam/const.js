@@ -29,6 +29,7 @@ export const avpCode = {
     SessionId:                          263,
     CCRequestNumber:                    415,
     CCRequestType:                      416,
+    ResultCode:                         268,
     SubscriptionId:                     443,
     SubscriptionIdData:                 444,
     SubscriptionIdType:                 450,
