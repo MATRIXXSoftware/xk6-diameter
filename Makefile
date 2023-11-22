@@ -15,7 +15,7 @@ build: xk6
 	xk6 build v0.37.0 --with github.com/matrixxsoftware/xk6-diameter=. --output bin/k6
 
 docker: build
-	$(DOCKER) build --no-cache --build-arg K6_BINARY=bin/k6 -t matrixxsoftware/xk6-diameter:latest .
+	$(DOCKER) build --no-cache --build-arg K6_BINARY=bin/k6 -t ghcr.io/matrixxsoftware/xk6-diameter:latest .
 
 clean:
 	$(RM) bin/k6 bin/dict_generator

@@ -73,5 +73,5 @@ Run xk6-diameter docker using the following command:
 docker run \
   --net=host \
   -v $(pwd)/example:/mnt/example \
-  matrixxsoftware/xk6-diameter run --logformat=raw /mnt/example/example.js  
+  ghcr.io/matrixxsoftware/xk6-diameter run --logformat=raw /mnt/example/example.js  
 ```
