@@ -156,7 +156,7 @@ func (m *DiameterMessage) Add(a *diam.AVP) {
 	m.diamMsg.AddAVP(a)
 }
 
-func (m *DiameterMessage) Dump() string {
+func (m *DiameterMessage) String() string {
 	return m.diamMsg.PrettyDump()
 }
 

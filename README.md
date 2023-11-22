@@ -41,7 +41,7 @@ export default function () {
     ])))
 
     const cca = client.send(ccr)
-    console.log("CCA: ", cca.dump())
+    console.log("CCA: ", cca)
 
     const resultCode = cca.findAVP(code.ResultCode, 0)
     check(resultCode, {'Result-Code == 2001': r => r == 2001,})
@@ -65,4 +65,13 @@ You can either create the constant yourself or use the bin/dict_generator CLI to
 The CLI also supports generating additional AVPs that are not defined in the default list. Simply add the -dictionary flag to include the additional AVP definition:
 ```bash
 ./bin/dict_generator -output example/diam/const.js -dictionary dict/extra.xml
+```
+
+## Docker
+Run xk6-diameter docker using the following command:
+```bash
+docker run \
+  --net=host \
+  -v $(pwd)/example:/mnt/example \
+  matrixxsoftware/xk6-diameter run --logformat=raw /mnt/example/example.js  
 ```
