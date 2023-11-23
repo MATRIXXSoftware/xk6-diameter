@@ -35,8 +35,15 @@ jobs:
       run: |
         make docker
 
+        if [ -z "${{ secrets.GITHUB_TOKEN }}" ]; then
+          echo "GITHUB_TOKEN is not available"
+          exit 1
+        else
+          echo "GITHUB_TOKEN is available"
+        fi
+
         echo "Logging into GitHub Container Registry... actor: ${{ github.actor }}"
-        echo "Logging into GitHub Container Registry... actor: ${{ github.GITHUB_TOKEN }}"
+        echo "Logging into GitHub Container Registry... actor: ${{ secrets.GITHUB_TOKEN }}"
         echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
         echo "Pushing Docker image..."
