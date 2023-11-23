@@ -28,7 +28,8 @@ jobs:
     - name: Build
       run: make
 
-    - name: Build and Push Docker Image
+    - name: Build and Push Docker Image 
+      if: github.event_name == 'push'
       env:
         IMAGE_NAME: ghcr.io/matrixxsoftware/xk6-diameter:latest
 
