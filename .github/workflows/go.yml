@@ -6,16 +6,15 @@ on:
   pull_request:
     branches: [ main ]
 
-jobs:
+permissions:
+  contents: read
+  packages: write
 
+jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
     steps:
-
     - name: Set up Go
       uses: actions/setup-go@v2
       with:
@@ -28,7 +27,7 @@ jobs:
     - name: Build
       run: make
 
-    - name: Build and Push Docker Image 
+    - name: Push Docker Image 
       if: github.event_name == 'push'
       env:
         IMAGE_NAME: ghcr.io/matrixxsoftware/xk6-diameter:latest
