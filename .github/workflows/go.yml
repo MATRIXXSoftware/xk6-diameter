@@ -2,7 +2,7 @@ name: Go
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, 'test/github-action' ]
   pull_request:
     branches: [ main ]
 
@@ -35,7 +35,8 @@ jobs:
       run: |
         make docker
 
-        echo "Logging into GitHub Container Registry..."
+        echo "Logging into GitHub Container Registry... actor: ${{ github.actor }}"
+        echo "Logging into GitHub Container Registry... actor: ${{ github.GITHUB_TOKEN }}"
         echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
         echo "Pushing Docker image..."
