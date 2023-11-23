@@ -30,6 +30,10 @@ type DataType struct{}
 
 type AVP struct{}
 
+type GroupedAVP struct {
+	groupAVP *diam.GroupedAVP
+}
+
 type Dict struct{}
 
 func (*Diameter) XClient(arg map[string]interface{}) (*DiameterClient, error) {
@@ -165,11 +169,15 @@ func (m *DiameterMessage) FindAVP(code uint32, vendor uint32) (interface{}, erro
 	if err != nil {
 		return nil, err
 	}
-	data := a.Data
 
-	// TODO handle groupAVP
+	return getDataValue(a.Data)
+}
 
+func getDataValue(data datatype.Type) (interface{}, error) {
 	switch data.Type() {
+	case diam.GroupedAVPType:
+		return GroupedAVP{data.(*diam.GroupedAVP)}, nil
+
 	case datatype.Integer32Type,
 		datatype.Integer64Type,
 		datatype.Unsigned32Type,
@@ -304,6 +312,15 @@ func (d *DataType) XUnsigned64(value uint64) datatype.Type {
 
 func (a *AVP) XNew(code uint32, vendor uint32, flags uint8, data datatype.Type) *diam.AVP {
 	return diam.NewAVP(code, flags, vendor, data)
+}
+
+func (g *GroupedAVP) FindAVP(code uint32, vendor uint32) (interface{}, error) {
+	for _, a := range g.groupAVP.AVP {
+		if a.Code == code && a.VendorID == vendor {
+			return getDataValue(a.Data)
+		}
+	}
+	return nil, errors.New("AVP not found")
 }
 
 func (*Dict) Load(dictionary string) error {
