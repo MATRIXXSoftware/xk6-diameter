@@ -21,8 +21,10 @@ import { cmd, app, code, flag, vendor } from './diam/const.js'
 
 import { check } from 'k6'
 
-let client = diam.Client()
 let data = diam.DataType()
+let client = diam.Client({
+    authApplicationId: [app.ChargingControl],
+})
 
 export default function () {
     client.connect("localhost:3868")

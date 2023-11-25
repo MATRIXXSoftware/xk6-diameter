@@ -7,13 +7,17 @@ import (
 )
 
 type DiameterConfig struct {
-	RequestTimeout     *Duration                 `json:"requestTimeout,omitempty"`
-	MaxRetransmits     *uint                     `json:"maxRetransmits,omitempty"`
-	RetransmitInterval *Duration                 `json:"retransmitInterval,omitempty"`
-	EnableWatchdog     *bool                     `json:"enableWatchdog,omitempty"`
-	WatchdogInterval   *Duration                 `json:"watchdogInterval,omitempty"`
-	WatchdogStream     *uint                     `json:"watchdogStream,omitempty"`
-	CapabilityExchange *CapabilityExchangeConfig `json:"capabilityExchange,omitempty"`
+	RequestTimeout              *Duration                 `json:"requestTimeout,omitempty"`
+	MaxRetransmits              *uint                     `json:"maxRetransmits,omitempty"`
+	RetransmitInterval          *Duration                 `json:"retransmitInterval,omitempty"`
+	EnableWatchdog              *bool                     `json:"enableWatchdog,omitempty"`
+	WatchdogInterval            *Duration                 `json:"watchdogInterval,omitempty"`
+	WatchdogStream              *uint                     `json:"watchdogStream,omitempty"`
+	SupportedVendorID           *[]uint32                 `json:"supportedVendorID,omitempty"`
+	AcctApplicationID           *[]uint32                 `json:"acctApplicationId,omitempty"`
+	AuthApplicationId           *[]uint32                 `json:"authApplicationId,omitempty"`
+	VendorSpecificApplicationID *[]uint32                 `json:"vendorSpecificApplicationId,omitempty"`
+	CapabilityExchange          *CapabilityExchangeConfig `json:"capabilityExchange,omitempty"`
 }
 
 type CapabilityExchangeConfig struct {
@@ -56,6 +60,10 @@ func setDiameterConfigDefaults(config *DiameterConfig) {
 	var defaultOriginRealm = "origin.realm"
 	var defaultFirmwareRevision uint32 = 1
 	var defaultHostIPAddresses = []string{"127.0.0.1"}
+	var defaultSupportedVendorID = []uint32{}
+	var defaultAcctApplicationID = []uint32{}
+	var defaultAuthApplicationID = []uint32{}
+	var defaultVendorSpecificApplicationID = []uint32{}
 
 	// Set defaults for DiameterConfig
 	if config.RequestTimeout == nil {
@@ -75,6 +83,18 @@ func setDiameterConfigDefaults(config *DiameterConfig) {
 	}
 	if config.WatchdogStream == nil {
 		config.WatchdogStream = &defaultWatchdogStream
+	}
+	if config.SupportedVendorID == nil {
+		config.SupportedVendorID = &defaultSupportedVendorID
+	}
+	if config.AcctApplicationID == nil {
+		config.AcctApplicationID = &defaultAcctApplicationID
+	}
+	if config.AuthApplicationId == nil {
+		config.AuthApplicationId = &defaultAuthApplicationID
+	}
+	if config.VendorSpecificApplicationID == nil {
+		config.VendorSpecificApplicationID = &defaultVendorSpecificApplicationID
 	}
 
 	// Set defaults for CapabilityExchangeConfig

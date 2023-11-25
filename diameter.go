@@ -62,17 +62,38 @@ func (*Diameter) XClient(arg map[string]interface{}) (*DiameterClient, error) {
 	hopIds := make(map[uint32]chan *diam.Message)
 	mux.Handle("ALL", handleResponse(hopIds))
 
+	supportedVendorID := []*diam.AVP{}
+	for _, vendorID := range *config.SupportedVendorID {
+		supportedVendorID = append(supportedVendorID, diam.NewAVP(avp.SupportedVendorID, avp.Mbit, 0, datatype.Unsigned32(vendorID)))
+	}
+
+	AuthApplicationID := []*diam.AVP{}
+	for _, appID := range *config.AuthApplicationId {
+		AuthApplicationID = append(AuthApplicationID, diam.NewAVP(avp.AuthApplicationID, avp.Mbit, 0, datatype.Unsigned32(appID)))
+	}
+
+	AccountingApplicationID := []*diam.AVP{}
+	for _, appID := range *config.AcctApplicationID {
+		AccountingApplicationID = append(AccountingApplicationID, diam.NewAVP(avp.AcctApplicationID, avp.Mbit, 0, datatype.Unsigned32(appID)))
+	}
+
+	VendorSpecificApplicationID := []*diam.AVP{}
+	for _, appID := range *config.VendorSpecificApplicationID {
+		VendorSpecificApplicationID = append(VendorSpecificApplicationID, diam.NewAVP(avp.VendorSpecificApplicationID, avp.Mbit, 0, datatype.Unsigned32(appID)))
+	}
+
 	client := &sm.Client{
-		Dict:               dict.Default,
-		Handler:            mux,
-		MaxRetransmits:     *config.MaxRetransmits,
-		RetransmitInterval: *&config.RetransmitInterval.Duration,
-		EnableWatchdog:     *config.EnableWatchdog,
-		WatchdogInterval:   *&config.WatchdogInterval.Duration,
-		WatchdogStream:     *config.WatchdogStream,
-		AuthApplicationID: []*diam.AVP{
-			diam.NewAVP(avp.AuthApplicationID, avp.Mbit, 0, datatype.Unsigned32(4)), // TODO make configurable
-		},
+		Dict:                        dict.Default,
+		Handler:                     mux,
+		MaxRetransmits:              *config.MaxRetransmits,
+		RetransmitInterval:          *&config.RetransmitInterval.Duration,
+		EnableWatchdog:              *config.EnableWatchdog,
+		WatchdogInterval:            *&config.WatchdogInterval.Duration,
+		WatchdogStream:              *config.WatchdogStream,
+		SupportedVendorID:           supportedVendorID,
+		AuthApplicationID:           AuthApplicationID,
+		AcctApplicationID:           AccountingApplicationID,
+		VendorSpecificApplicationID: VendorSpecificApplicationID,
 	}
 
 	return &DiameterClient{
@@ -102,7 +123,7 @@ func (c *DiameterClient) Connect(address string) error {
 
 	conn, err := c.client.DialNetwork("tcp", address)
 	if err != nil {
-		log.Errorf("Error connecting to %s, %v\n", "localhost:3868", err)
+		log.Errorf("Error connecting to %s, %v\n", "localhost:3368", err)
 		return err
 	}
 	log.Infof("Connected to %s\n", "localhost:3868")
