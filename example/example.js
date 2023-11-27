@@ -2,7 +2,6 @@ import diam from 'k6/x/diameter'
 import avp from 'k6/x/diameter/avp'
 import dict from 'k6/x/diameter/dict'
 import { cmd, app, code, flag, vendor } from './diam/const.js'
-
 import { check } from 'k6'
 
 export let options = {
@@ -14,10 +13,14 @@ export let options = {
 // dict.load("dict/extra.xml")
 
 let data = diam.DataType()
+
 let client = diam.Client({
     requestTimeout: "50ms",
     enableWatchdog: false,
     authApplicationId: [app.ChargingControl],
+    capabilityExchange: {
+        vendorId: 35838,
+    },
 })
 
 export default function () {
