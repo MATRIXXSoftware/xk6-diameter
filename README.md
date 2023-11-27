@@ -84,7 +84,7 @@ Configurations
 
 ### Diameter Config
 
-| Field Name                     | JavaScript Type               | Description                                           |
+| Field Name                     | Type               | Description                                           |
 | ------------------------------ | ----------------------------- | ----------------------------------------------------- |
 | RequestTimeout                 | duration                      | Timeout for each request                              |
 | MaxRetransmits                 | number                        | Maximum number of message retransmissions             |
@@ -100,7 +100,7 @@ Configurations
 
 ### Capability Exchange Config
 
-| Field Name                     | JavaScript Type               | Description                                           |
+| Field Name                     | Type               | Description                                           |
 | ------------------------------ | ----------------------------- | ----------------------------------------------------- |
 | VendorID                       | number                        | Vendor ID                                             |
 | ProductName                    | string                        | Name of the product                                   |
