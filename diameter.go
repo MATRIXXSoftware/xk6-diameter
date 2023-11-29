@@ -16,10 +16,11 @@ import (
 )
 
 type DiameterClient struct {
-	client         *sm.Client
-	conn           diam.Conn
-	hopIds         map[uint32]chan *diam.Message
-	requestTimeout time.Duration
+	client            *sm.Client
+	conn              diam.Conn
+	hopIds            map[uint32]chan *diam.Message
+	requestTimeout    time.Duration
+	transportProtocol string
 }
 
 type DiameterMessage struct {
@@ -97,10 +98,11 @@ func (*Diameter) XClient(arg map[string]interface{}) (*DiameterClient, error) {
 	}
 
 	return &DiameterClient{
-		client:         client,
-		conn:           nil,
-		hopIds:         hopIds,
-		requestTimeout: config.RequestTimeout.Duration,
+		client:            client,
+		conn:              nil,
+		hopIds:            hopIds,
+		requestTimeout:    config.RequestTimeout.Duration,
+		transportProtocol: *config.TransportProtocol,
 	}, nil
 }
 
@@ -121,7 +123,7 @@ func (c *DiameterClient) Connect(address string) error {
 		return nil
 	}
 
-	conn, err := c.client.DialNetwork("tcp", address)
+	conn, err := c.client.DialNetwork(c.transportProtocol, address)
 	if err != nil {
 		log.Errorf("Error connecting to %s, %v\n", "localhost:3368", err)
 		return err
