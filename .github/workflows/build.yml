@@ -12,20 +12,20 @@ jobs:
   build-and-push:
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v2
+      - name: Checkout repository
+        uses: actions/checkout@v2
 
-    - name: Set up Go
-      uses: actions/setup-go@v2
-      with:
-        go-version: ^1.21
-      id: go
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: ^1.21
+        id: go
 
-    - name: Build Source Code
-      run: make
+      - name: Build Source Code
+        run: make
 
-  - name: Upload Artifacts
-      uses: actions/upload-artifact@v2
-      with:
-        name: build-artifacts
-        path: path/to/your/artifacts
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: build-artifacts
+          path: path/to/your/artifacts
