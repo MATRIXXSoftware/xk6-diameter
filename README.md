@@ -84,23 +84,24 @@ Configurations
 
 ### Diameter Config
 
-| Field Name                     | Type               | Description                                           |
-| ------------------------------ | ----------------------------- | ----------------------------------------------------- |
-| RequestTimeout                 | duration                      | Timeout for each request                              |
-| MaxRetransmits                 | number                        | Maximum number of message retransmissions             |
-| RetransmitInterval             | duration                      | Interval between message retransmissions              |
-| EnableWatchdog                 | boolean                       | Flag to enable automatic DWR (Diameter Watchdog Request) |
-| WatchdogInterval               | duration                      | Interval between sending DWRs                         |
-| WatchdogStream                 | number                        | Stream ID for sending DWRs (for multistreaming protocols) |
-| SupportedVendorID              | number array                  | List of supported vendor IDs                          |
-| AcctApplicationID              | number array                  | List of accounting application IDs                    |
-| AuthApplicationID              | number array                  | List of authentication application IDs                |
-| VendorSpecificApplicationID    | number array                  | List of vendor-specific application IDs               |
-| CapabilityExchange             | object                        | Configuration for capability exchange                 |
+| Field Name                     | Type                          | Description                                                                  |
+| ------------------------------ | ----------------------------- | -----------------------------------------------------------------------------|
+| RequestTimeout                 | duration                      | Timeout for each request                                                     |
+| MaxRetransmits                 | number                        | Maximum number of message retransmissions                                    |
+| RetransmitInterval             | duration                      | Interval between message retransmissions                                     |
+| EnableWatchdog                 | boolean                       | Flag to enable automatic DWR (Diameter Watchdog Request)                     |
+| WatchdogInterval               | duration                      | Interval between sending DWRs                                                |
+| WatchdogStream                 | number                        | Stream ID for sending DWRs (for multistreaming protocols)                    |
+| SupportedVendorID              | number array                  | List of supported vendor IDs                                                 |
+| AcctApplicationID              | number array                  | List of accounting application IDs                                           |
+| AuthApplicationID              | number array                  | List of authentication application IDs                                       |
+| VendorSpecificApplicationID    | number array                  | List of vendor-specific application IDs                                      |
+| CapabilityExchange             | object                        | Configuration for capability exchange                                        |
+| TransportProtocol              | string                        | Transport layer protocol to use, either "tcp" or "sctp". Defaults to "tcp"   |
 
 ### Capability Exchange Config
 
-| Field Name                     | Type               | Description                                           |
+| Field Name                     | Type                          | Description                                           |
 | ------------------------------ | ----------------------------- | ----------------------------------------------------- |
 | VendorID                       | number                        | Vendor ID                                             |
 | ProductName                    | string                        | Name of the product                                   |

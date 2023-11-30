@@ -17,6 +17,7 @@ type DiameterConfig struct {
 	AcctApplicationID           *[]uint32                 `json:"acctApplicationId,omitempty"`
 	AuthApplicationId           *[]uint32                 `json:"authApplicationId,omitempty"`
 	VendorSpecificApplicationID *[]uint32                 `json:"vendorSpecificApplicationId,omitempty"`
+	TransportProtocol           *string                   `josn:"transportProtocol,omitempty"`
 	CapabilityExchange          *CapabilityExchangeConfig `json:"capabilityExchange,omitempty"`
 }
 
@@ -64,6 +65,7 @@ func setDiameterConfigDefaults(config *DiameterConfig) {
 	var defaultAcctApplicationID = []uint32{}
 	var defaultAuthApplicationID = []uint32{}
 	var defaultVendorSpecificApplicationID = []uint32{}
+	var defaultTransportProtocol = "tcp"
 
 	// Set defaults for DiameterConfig
 	if config.RequestTimeout == nil {
@@ -95,6 +97,9 @@ func setDiameterConfigDefaults(config *DiameterConfig) {
 	}
 	if config.VendorSpecificApplicationID == nil {
 		config.VendorSpecificApplicationID = &defaultVendorSpecificApplicationID
+	}
+	if config.TransportProtocol == nil {
+		config.TransportProtocol = &defaultTransportProtocol
 	}
 
 	// Set defaults for CapabilityExchangeConfig
