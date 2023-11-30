@@ -18,6 +18,12 @@ let client = diam.Client({
     requestTimeout: "50ms",
     enableWatchdog: false,
     authApplicationId: [app.ChargingControl],
+    vendorSpecificApplicationId: [
+        {
+            authApplicationId: app.ChargingControl,
+            vendorId: vendor.TGPP,
+        }
+    ],
     capabilityExchange: {
         vendorId: 35838,
     },

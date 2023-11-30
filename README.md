@@ -84,20 +84,27 @@ Configurations
 
 ### Diameter Config
 
-| Field Name                     | Type                          | Description                                                                  |
-| ------------------------------ | ----------------------------- | -----------------------------------------------------------------------------|
-| RequestTimeout                 | duration                      | Timeout for each request                                                     |
-| MaxRetransmits                 | number                        | Maximum number of message retransmissions                                    |
-| RetransmitInterval             | duration                      | Interval between message retransmissions                                     |
-| EnableWatchdog                 | boolean                       | Flag to enable automatic DWR (Diameter Watchdog Request)                     |
-| WatchdogInterval               | duration                      | Interval between sending DWRs                                                |
-| WatchdogStream                 | number                        | Stream ID for sending DWRs (for multistreaming protocols)                    |
-| SupportedVendorID              | number array                  | List of supported vendor IDs                                                 |
-| AcctApplicationID              | number array                  | List of accounting application IDs                                           |
-| AuthApplicationID              | number array                  | List of authentication application IDs                                       |
-| VendorSpecificApplicationID    | number array                  | List of vendor-specific application IDs                                      |
-| CapabilityExchange             | object                        | Configuration for capability exchange                                        |
-| TransportProtocol              | string                        | Transport layer protocol to use, either "tcp" or "sctp". Defaults to "tcp"   |
+| Field Name                  | Type         | Description                                                                |
+|-----------------------------|--------------|----------------------------------------------------------------------------|
+| RequestTimeout              | duration     | Timeout for each request                                                   |
+| MaxRetransmits              | number       | Maximum number of message retransmissions                                  |
+| RetransmitInterval          | duration     | Interval between message retransmissions                                   |
+| EnableWatchdog              | boolean      | Flag to enable automatic DWR (Diameter Watchdog Request)                   |
+| WatchdogInterval            | duration     | Interval between sending DWRs                                              |
+| WatchdogStream              | number       | Stream ID for sending DWRs (for multistreaming protocols)                  |
+| SupportedVendorID           | number array | List of supported vendor IDs                                               |
+| AcctApplicationID           | number array | List of accounting application IDs                                         |
+| AuthApplicationID           | number array | List of authentication application IDs                                     |
+| VendorSpecificApplicationID | object       | List of vendor-specific application IDs                                    |
+| CapabilityExchange          | object       | Configuration for capability exchange                                      |
+| TransportProtocol           | string       | Transport layer protocol to use, either "tcp" or "sctp". Defaults to "tcp" |
+
+### Vendor Specific Application Id Config
+| Field Name        | Type   | Description         |
+|-------------------|--------|---------------------|
+| VendorID          | number | Vendor ID           |
+| AuthApplicationID | number | Auth Application ID |
+| AcctApplicationID | number | Acct Application ID |
 
 ### Capability Exchange Config
 
@@ -118,6 +125,12 @@ let client = diam.Client({
     requestTimeout: "50ms",
     enableWatchdog: false,
     authApplicationId: [app.ChargingControl],
+    vendorSpecificApplicationId: [
+        {
+            authApplicationId: app.ChargingControl,
+            vendorId: vendor.TGPP,
+        }
+    ],
     capabilityExchange: {
         vendorId: 35838,
     },
