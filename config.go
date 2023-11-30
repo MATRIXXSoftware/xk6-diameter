@@ -7,18 +7,24 @@ import (
 )
 
 type DiameterConfig struct {
-	RequestTimeout              *Duration                 `json:"requestTimeout,omitempty"`
-	MaxRetransmits              *uint                     `json:"maxRetransmits,omitempty"`
-	RetransmitInterval          *Duration                 `json:"retransmitInterval,omitempty"`
-	EnableWatchdog              *bool                     `json:"enableWatchdog,omitempty"`
-	WatchdogInterval            *Duration                 `json:"watchdogInterval,omitempty"`
-	WatchdogStream              *uint                     `json:"watchdogStream,omitempty"`
-	SupportedVendorID           *[]uint32                 `json:"supportedVendorID,omitempty"`
-	AcctApplicationID           *[]uint32                 `json:"acctApplicationId,omitempty"`
-	AuthApplicationId           *[]uint32                 `json:"authApplicationId,omitempty"`
-	VendorSpecificApplicationID *[]uint32                 `json:"vendorSpecificApplicationId,omitempty"`
-	TransportProtocol           *string                   `josn:"transportProtocol,omitempty"`
-	CapabilityExchange          *CapabilityExchangeConfig `json:"capabilityExchange,omitempty"`
+	RequestTimeout              *Duration                            `json:"requestTimeout,omitempty"`
+	MaxRetransmits              *uint                                `json:"maxRetransmits,omitempty"`
+	RetransmitInterval          *Duration                            `json:"retransmitInterval,omitempty"`
+	EnableWatchdog              *bool                                `json:"enableWatchdog,omitempty"`
+	WatchdogInterval            *Duration                            `json:"watchdogInterval,omitempty"`
+	WatchdogStream              *uint                                `json:"watchdogStream,omitempty"`
+	SupportedVendorID           *[]uint32                            `json:"supportedVendorID,omitempty"`
+	AcctApplicationID           *[]uint32                            `json:"acctApplicationId,omitempty"`
+	AuthApplicationId           *[]uint32                            `json:"authApplicationId,omitempty"`
+	VendorSpecificApplicationID *[]VendorSpecificApplicationIDConfig `json:"vendorSpecificApplicationId,omitempty"`
+	TransportProtocol           *string                              `josn:"transportProtocol,omitempty"`
+	CapabilityExchange          *CapabilityExchangeConfig            `json:"capabilityExchange,omitempty"`
+}
+
+type VendorSpecificApplicationIDConfig struct {
+	VendorID          *uint32 `json:"vendorId,omitempty"`
+	AuthApplicationID *uint32 `json:"authApplicationId,omitempty"`
+	AcctApplicationID *uint32 `json:"acctApplicationId,omitempty"`
 }
 
 type CapabilityExchangeConfig struct {
@@ -64,7 +70,7 @@ func setDiameterConfigDefaults(config *DiameterConfig) {
 	var defaultSupportedVendorID = []uint32{}
 	var defaultAcctApplicationID = []uint32{}
 	var defaultAuthApplicationID = []uint32{}
-	var defaultVendorSpecificApplicationID = []uint32{}
+	var defaultVendorSpecificApplicationID = []VendorSpecificApplicationIDConfig{}
 	var defaultTransportProtocol = "tcp"
 
 	// Set defaults for DiameterConfig

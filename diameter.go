@@ -79,8 +79,25 @@ func (*Diameter) XClient(arg map[string]interface{}) (*DiameterClient, error) {
 	}
 
 	VendorSpecificApplicationID := []*diam.AVP{}
-	for _, appID := range *config.VendorSpecificApplicationID {
-		VendorSpecificApplicationID = append(VendorSpecificApplicationID, diam.NewAVP(avp.VendorSpecificApplicationID, avp.Mbit, 0, datatype.Unsigned32(appID)))
+	for _, vendorSpecificApplicationId := range *config.VendorSpecificApplicationID {
+		avps := []*diam.AVP{}
+
+		if vendorSpecificApplicationId.AuthApplicationID != nil {
+			authApplicationID := vendorSpecificApplicationId.AuthApplicationID
+			avps = append(avps, diam.NewAVP(avp.AuthApplicationID, avp.Mbit, 0, datatype.Unsigned32(*authApplicationID)))
+		}
+
+		if vendorSpecificApplicationId.AcctApplicationID != nil {
+			acctApplicationID := vendorSpecificApplicationId.AcctApplicationID
+			avps = append(avps, diam.NewAVP(avp.AcctApplicationID, avp.Mbit, 0, datatype.Unsigned32(*acctApplicationID)))
+		}
+
+		if vendorSpecificApplicationId.VendorID != nil {
+			vendorID := vendorSpecificApplicationId.VendorID
+			avps = append(avps, diam.NewAVP(avp.VendorID, avp.Mbit, 0, datatype.Unsigned32(*vendorID)))
+		}
+
+		VendorSpecificApplicationID = append(VendorSpecificApplicationID, diam.NewAVP(avp.VendorSpecificApplicationID, avp.Mbit, 0, &diam.GroupedAVP{AVP: avps}))
 	}
 
 	client := &sm.Client{
