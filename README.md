@@ -112,7 +112,7 @@ Configurations
 ### Example
 The following example demonstrates how to create a Diameter client in k6 with various configuration options.
 
-```go
+```js
 let client = diam.Client({
     requestTimeout: "50ms",
     enableWatchdog: false,
