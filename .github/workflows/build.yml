@@ -32,7 +32,8 @@ jobs:
 
   deploy:
     runs-on: ubuntu-latest
-    if: github.event_name != 'pull_request'
+    needs: build
+    if: ${{ github.repository_owner == 'MATRIXXSoftware' && github.event_name != 'pull_request' }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
