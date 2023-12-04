@@ -142,17 +142,16 @@ func (c *DiameterClient) Connect(address string) error {
 
 	conn, err := c.client.DialNetwork(c.transportProtocol, address)
 	if err != nil {
-		log.Errorf("Error connecting to %s, %v\n", "localhost:3368", err)
+		log.Errorf("Error connecting to %s, %v\n", address, err)
 		return err
 	}
-	log.Infof("Connected to %s\n", "localhost:3868")
+	log.Infof("Connected to %s\n", address)
 
 	c.conn = conn
 	return nil
 }
 
 func (c *DiameterClient) Send(msg *DiameterMessage) (*DiameterMessage, error) {
-
 	if c.conn == nil {
 		return nil, errors.New("Not connected")
 	}
