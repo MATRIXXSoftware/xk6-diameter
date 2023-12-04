@@ -9,7 +9,10 @@ require (
 	github.com/fiorix/go-diameter/v4 v4.0.5-0.20231116194707-845be291bb4b
 )
 
-require golang.org/x/crypto v0.14.0 // indirect
+require (
+	golang.org/x/crypto v0.14.0 // indirect
+	google.golang.org/genproto v0.0.0-20231127180814-3a041ad873d4 // indirect
+)
 
 require (
 	github.com/dlclark/regexp2 v1.9.0 // indirect
