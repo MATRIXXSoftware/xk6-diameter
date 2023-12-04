@@ -13,6 +13,8 @@ import (
 	"github.com/fiorix/go-diameter/v4/diam/dict"
 	"github.com/fiorix/go-diameter/v4/diam/sm"
 	log "github.com/sirupsen/logrus"
+	"go.k6.io/k6/js/modules"
+	"go.k6.io/k6/metrics"
 )
 
 type DiameterClient struct {
@@ -21,6 +23,8 @@ type DiameterClient struct {
 	hopIds            map[uint32]chan *diam.Message
 	requestTimeout    time.Duration
 	transportProtocol string
+	metrics           DiameterMetrics
+	vu                modules.VU
 }
 
 type DiameterMessage struct {
@@ -37,8 +41,7 @@ type GroupedAVP struct {
 
 type Dict struct{}
 
-func (*Diameter) XClient(arg map[string]interface{}) (*DiameterClient, error) {
-
+func (d *Diameter) XClient(arg map[string]interface{}) (*DiameterClient, error) {
 	config, err := parseConfig(arg)
 	if err != nil {
 		return nil, err
@@ -120,6 +123,8 @@ func (*Diameter) XClient(arg map[string]interface{}) (*DiameterClient, error) {
 		hopIds:            hopIds,
 		requestTimeout:    config.RequestTimeout.Duration,
 		transportProtocol: *config.TransportProtocol,
+		metrics:           d.metrics,
+		vu:                d.vu,
 	}, nil
 }
 
@@ -165,6 +170,9 @@ func (c *DiameterClient) Send(msg *DiameterMessage) (*DiameterMessage, error) {
 	// Timeout settings
 	timeout := time.After(c.requestTimeout)
 
+	// Register current time to calculate request duration
+	sentAt := time.Now()
+
 	// Send Request
 	_, err := req.WriteTo(c.conn)
 	if err != nil {
@@ -172,16 +180,18 @@ func (c *DiameterClient) Send(msg *DiameterMessage) (*DiameterMessage, error) {
 	}
 
 	// Wait for Response
-	var resp *diam.Message
 	select {
-	case resp = <-c.hopIds[hopByHopID]:
+	case resp := <-c.hopIds[hopByHopID]:
+		now := time.Now()
+		c.reportMetric(c.metrics.RequestDuration, time.Now(), metrics.D(now.Sub(sentAt)))
+		c.reportMetric(c.metrics.RequestCount, time.Now(), 1)
+
+		delete(c.hopIds, hopByHopID)
+
+		return &DiameterMessage{diamMsg: resp}, nil
 	case <-timeout:
 		return nil, errors.New("Response timeout")
 	}
-
-	delete(c.hopIds, hopByHopID)
-
-	return &DiameterMessage{diamMsg: resp}, nil
 }
 
 func (*Diameter) NewMessage(cmd uint32, appid uint32) *DiameterMessage {
