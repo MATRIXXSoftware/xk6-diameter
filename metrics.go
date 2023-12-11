@@ -8,15 +8,17 @@ import (
 )
 
 type DiameterMetrics struct {
-	RequestDuration *metrics.Metric
-	RequestCount    *metrics.Metric
+	RequestDuration    *metrics.Metric
+	RequestCount       *metrics.Metric
+	FailedRequestCount *metrics.Metric
 }
 
 func registerMetrics(vu modules.VU) DiameterMetrics {
 	registry := vu.InitEnv().Registry
 	metrics := DiameterMetrics{
-		RequestDuration: registry.MustNewMetric("diameter_req_duration", metrics.Trend, metrics.Time),
-		RequestCount:    registry.MustNewMetric("diameter_req_count", metrics.Counter, metrics.Default),
+		RequestDuration:    registry.MustNewMetric("diameter_req_duration", metrics.Trend, metrics.Time),
+		RequestCount:       registry.MustNewMetric("diameter_req_count", metrics.Counter, metrics.Default),
+		FailedRequestCount: registry.MustNewMetric("diameter_req_failed", metrics.Counter, metrics.Default),
 	}
 	return metrics
 }

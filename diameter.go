@@ -173,19 +173,20 @@ func (c *DiameterClient) Send(msg *DiameterMessage) (*DiameterMessage, error) {
 
 	// Register current time to calculate request duration
 	sentAt := time.Now()
+	tags := map[string]string{
+		"cmd_code": strconv.FormatUint(uint64(msg.diamMsg.Header.CommandCode), 10),
+	}
 
 	// Send Request
 	_, err := req.WriteTo(c.conn)
 	if err != nil {
+		c.reportMetric(c.metrics.FailedRequestCount, time.Now(), 1, tags)
 		return nil, err
 	}
 
 	// Wait for Response
 	select {
 	case resp := <-c.hopIds[hopByHopID]:
-		tags := map[string]string{
-			"cmd_code": strconv.FormatUint(uint64(msg.diamMsg.Header.CommandCode), 10),
-		}
 		now := time.Now()
 		c.reportMetric(c.metrics.RequestDuration, now, metrics.D(now.Sub(sentAt)), tags)
 		c.reportMetric(c.metrics.RequestCount, now, 1, tags)
@@ -194,6 +195,7 @@ func (c *DiameterClient) Send(msg *DiameterMessage) (*DiameterMessage, error) {
 
 		return &DiameterMessage{diamMsg: resp}, nil
 	case <-timeout:
+		c.reportMetric(c.metrics.FailedRequestCount, time.Now(), 1, tags)
 		return nil, errors.New("Response timeout")
 	}
 }
