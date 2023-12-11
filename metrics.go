@@ -21,7 +21,7 @@ func registerMetrics(vu modules.VU) DiameterMetrics {
 	return metrics
 }
 
-func (c *DiameterClient) reportMetric(metric *metrics.Metric, now time.Time, value float64) {
+func (c *DiameterClient) reportMetric(metric *metrics.Metric, now time.Time, value float64, tags map[string]string) {
 	state := c.vu.State()
 	ctx := c.vu.Context()
 	if state == nil || ctx == nil {
@@ -32,6 +32,7 @@ func (c *DiameterClient) reportMetric(metric *metrics.Metric, now time.Time, val
 		Time: now,
 		TimeSeries: metrics.TimeSeries{
 			Metric: metric,
+			Tags:   metrics.NewRegistry().RootTagSet().WithTagsFromMap(tags),
 		},
 		Value: value,
 	})

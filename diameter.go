@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/fiorix/go-diameter/v4/diam"
@@ -182,9 +183,12 @@ func (c *DiameterClient) Send(msg *DiameterMessage) (*DiameterMessage, error) {
 	// Wait for Response
 	select {
 	case resp := <-c.hopIds[hopByHopID]:
+		tags := map[string]string{
+			"cmd_code": strconv.FormatUint(uint64(msg.diamMsg.Header.CommandCode), 10),
+		}
 		now := time.Now()
-		c.reportMetric(c.metrics.RequestDuration, time.Now(), metrics.D(now.Sub(sentAt)))
-		c.reportMetric(c.metrics.RequestCount, time.Now(), 1)
+		c.reportMetric(c.metrics.RequestDuration, time.Now(), metrics.D(now.Sub(sentAt)), tags)
+		c.reportMetric(c.metrics.RequestCount, time.Now(), 1, tags)
 
 		delete(c.hopIds, hopByHopID)
 
