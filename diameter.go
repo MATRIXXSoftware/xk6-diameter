@@ -187,8 +187,8 @@ func (c *DiameterClient) Send(msg *DiameterMessage) (*DiameterMessage, error) {
 			"cmd_code": strconv.FormatUint(uint64(msg.diamMsg.Header.CommandCode), 10),
 		}
 		now := time.Now()
-		c.reportMetric(c.metrics.RequestDuration, time.Now(), metrics.D(now.Sub(sentAt)), tags)
-		c.reportMetric(c.metrics.RequestCount, time.Now(), 1, tags)
+		c.reportMetric(c.metrics.RequestDuration, now, metrics.D(now.Sub(sentAt)), tags)
+		c.reportMetric(c.metrics.RequestCount, now, 1, tags)
 
 		delete(c.hopIds, hopByHopID)
 
