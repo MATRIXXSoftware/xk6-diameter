@@ -190,6 +190,7 @@ func (c *DiameterClient) Send(msg *DiameterMessage) (*DiameterMessage, error) {
 		now := time.Now()
 		c.reportMetric(c.metrics.RequestDuration, now, metrics.D(now.Sub(sentAt)), tags)
 		c.reportMetric(c.metrics.RequestCount, now, 1, tags)
+		c.reportMetric(c.metrics.FailedRequestCount, now, 0, tags)
 
 		delete(c.hopIds, hopByHopID)
 

@@ -18,7 +18,7 @@ func registerMetrics(vu modules.VU) DiameterMetrics {
 	metrics := DiameterMetrics{
 		RequestDuration:    registry.MustNewMetric("diameter_req_duration", metrics.Trend, metrics.Time),
 		RequestCount:       registry.MustNewMetric("diameter_req_count", metrics.Counter, metrics.Default),
-		FailedRequestCount: registry.MustNewMetric("diameter_req_failed", metrics.Counter, metrics.Default),
+		FailedRequestCount: registry.MustNewMetric("diameter_req_failed", metrics.Rate, metrics.Default),
 	}
 	return metrics
 }
