@@ -43,7 +43,7 @@ export default function () {
     ])))
 
     const cca = client.send(ccr)
-    console.log("CCA: ", cca)
+    console.log(`CCA: ${cca}`)
 
     const resultCode = cca.findAVP(code.ResultCode, 0)
     check(resultCode, {'Result-Code == 2001': r => r == 2001,})

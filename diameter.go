@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/fiorix/go-diameter/v4/diam"
@@ -13,6 +14,8 @@ import (
 	"github.com/fiorix/go-diameter/v4/diam/dict"
 	"github.com/fiorix/go-diameter/v4/diam/sm"
 	log "github.com/sirupsen/logrus"
+	"go.k6.io/k6/js/modules"
+	"go.k6.io/k6/metrics"
 )
 
 type DiameterClient struct {
@@ -21,6 +24,8 @@ type DiameterClient struct {
 	hopIds            map[uint32]chan *diam.Message
 	requestTimeout    time.Duration
 	transportProtocol string
+	metrics           DiameterMetrics
+	vu                modules.VU
 }
 
 type DiameterMessage struct {
@@ -37,8 +42,7 @@ type GroupedAVP struct {
 
 type Dict struct{}
 
-func (*Diameter) XClient(arg map[string]interface{}) (*DiameterClient, error) {
-
+func (d *Diameter) XClient(arg map[string]interface{}) (*DiameterClient, error) {
 	config, err := parseConfig(arg)
 	if err != nil {
 		return nil, err
@@ -120,6 +124,8 @@ func (*Diameter) XClient(arg map[string]interface{}) (*DiameterClient, error) {
 		hopIds:            hopIds,
 		requestTimeout:    config.RequestTimeout.Duration,
 		transportProtocol: *config.TransportProtocol,
+		metrics:           d.metrics,
+		vu:                d.vu,
 	}, nil
 }
 
@@ -142,17 +148,16 @@ func (c *DiameterClient) Connect(address string) error {
 
 	conn, err := c.client.DialNetwork(c.transportProtocol, address)
 	if err != nil {
-		log.Errorf("Error connecting to %s, %v\n", "localhost:3368", err)
+		log.Errorf("Error connecting to %s, %v\n", address, err)
 		return err
 	}
-	log.Infof("Connected to %s\n", "localhost:3868")
+	log.Infof("Connected to %s\n", address)
 
 	c.conn = conn
 	return nil
 }
 
 func (c *DiameterClient) Send(msg *DiameterMessage) (*DiameterMessage, error) {
-
 	if c.conn == nil {
 		return nil, errors.New("Not connected")
 	}
@@ -166,23 +171,34 @@ func (c *DiameterClient) Send(msg *DiameterMessage) (*DiameterMessage, error) {
 	// Timeout settings
 	timeout := time.After(c.requestTimeout)
 
+	// Register current time to calculate request duration
+	sentAt := time.Now()
+	tags := map[string]string{
+		"cmd_code": strconv.FormatUint(uint64(msg.diamMsg.Header.CommandCode), 10),
+	}
+
 	// Send Request
 	_, err := req.WriteTo(c.conn)
 	if err != nil {
+		c.reportMetric(c.metrics.FailedRequestCount, time.Now(), 1, tags)
 		return nil, err
 	}
 
 	// Wait for Response
-	var resp *diam.Message
 	select {
-	case resp = <-c.hopIds[hopByHopID]:
+	case resp := <-c.hopIds[hopByHopID]:
+		now := time.Now()
+		c.reportMetric(c.metrics.RequestDuration, now, metrics.D(now.Sub(sentAt)), tags)
+		c.reportMetric(c.metrics.RequestCount, now, 1, tags)
+		c.reportMetric(c.metrics.FailedRequestCount, now, 0, tags)
+
+		delete(c.hopIds, hopByHopID)
+
+		return &DiameterMessage{diamMsg: resp}, nil
 	case <-timeout:
+		c.reportMetric(c.metrics.FailedRequestCount, time.Now(), 1, tags)
 		return nil, errors.New("Response timeout")
 	}
-
-	delete(c.hopIds, hopByHopID)
-
-	return &DiameterMessage{diamMsg: resp}, nil
 }
 
 func (*Diameter) NewMessage(cmd uint32, appid uint32) *DiameterMessage {
