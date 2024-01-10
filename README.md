@@ -41,6 +41,11 @@ export default function () {
         avp.New(code.SubscriptionIdData,     0,     flag.M,  data.UTF8String("subs-data")),
         avp.New(code.SubscriptionIdType,     0,     flag.M,  data.Enumerated(1))
     ])))
+    ccr.add(avp.New(code.ServiceInformation, 10415, flag.M,  data.Grouped([
+        avp.New(code.PSInformation,          10415, flag.M,  data.Grouped([
+            avp.New(code.CalledStationId,    0,     flag.M,  data.UTF8String("10099"))
+        ]))
+    ])))
 
     const cca = client.send(ccr)
     console.log(`CCA: ${cca}`)

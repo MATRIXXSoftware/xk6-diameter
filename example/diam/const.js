@@ -14,6 +14,7 @@ export const flag = {
     P:                   0x20, // private bit
 }
 export const code = {
+    CalledStationId:               30,
     DestinationHost:               293,
     DestinationRealm:              283,
     OriginHost:                    264,
@@ -26,6 +27,8 @@ export const code = {
     SubscriptionId:                443,
     SubscriptionIdData:            444,
     SubscriptionIdType:            450,
+    ServiceInformation:            873,
+    PSInformation:                 874,
     // Extra
     EventNameCode:                 13001,
 }
