@@ -103,6 +103,7 @@ Configurations
 | VendorSpecificApplicationID | object       | List of vendor-specific application IDs                                    |
 | CapabilityExchange          | object       | Configuration for capability exchange                                      |
 | TransportProtocol           | string       | Transport layer protocol to use, either "tcp" or "sctp". Defaults to "tcp" |
+| TLS                         | object       | TLS Configuration                                                          |
 
 ### Vendor Specific Application Id Config
 | Field Name        | Type   | Description         |
@@ -121,6 +122,13 @@ Configurations
 | OriginRealm                    | string                        | Realm of the origin                                   |
 | FirmwareRevision               | number                        | Firmware revision number                              |
 | HostIPAddresses                | string array                  | List of host IP addresses                             |
+
+### TLS Config
+| Field Name | Type    | Description                        |
+| ---------- | ------- | ---------------------------------- |
+| Enable     | boolean | Use TLS encrypted connection       |
+| Cert       | String  | TLS certificate file, can be empty |
+| Key        | String  | TLS private key file, can be empty |
 
 ### Example
 The following example demonstrates how to create a Diameter client in k6 with various configuration options.
