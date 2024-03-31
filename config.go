@@ -17,8 +17,9 @@ type DiameterConfig struct {
 	AcctApplicationID           *[]uint32                            `json:"acctApplicationId,omitempty"`
 	AuthApplicationId           *[]uint32                            `json:"authApplicationId,omitempty"`
 	VendorSpecificApplicationID *[]VendorSpecificApplicationIDConfig `json:"vendorSpecificApplicationId,omitempty"`
-	TransportProtocol           *string                              `josn:"transportProtocol,omitempty"`
 	CapabilityExchange          *CapabilityExchangeConfig            `json:"capabilityExchange,omitempty"`
+	TransportProtocol           *string                              `josn:"transportProtocol,omitempty"`
+	TLS                         *TLSConfig                           `json:"tls,omitempty"`
 }
 
 type VendorSpecificApplicationIDConfig struct {
@@ -34,6 +35,12 @@ type CapabilityExchangeConfig struct {
 	OriginRealm      *string   `json:"originRealm,omitempty"`
 	FirmwareRevision *uint32   `json:"firmwareRevision,omitempty"`
 	HostIPAddresses  *[]string `json:"hostIPAddresses,omitempty"`
+}
+
+type TLSConfig struct {
+	Enable bool   `json:"enable"`
+	Cert   string `json:"cert,omitempty"`
+	Key    string `json:"key,omitempty"`
 }
 
 func parseConfig(arg map[string]interface{}) (*DiameterConfig, error) {
@@ -104,9 +111,6 @@ func setDiameterConfigDefaults(config *DiameterConfig) {
 	if config.VendorSpecificApplicationID == nil {
 		config.VendorSpecificApplicationID = &defaultVendorSpecificApplicationID
 	}
-	if config.TransportProtocol == nil {
-		config.TransportProtocol = &defaultTransportProtocol
-	}
 
 	// Set defaults for CapabilityExchangeConfig
 	if config.CapabilityExchange == nil {
@@ -130,6 +134,16 @@ func setDiameterConfigDefaults(config *DiameterConfig) {
 	if config.CapabilityExchange.HostIPAddresses == nil {
 		config.CapabilityExchange.HostIPAddresses = &defaultHostIPAddresses
 	}
+
+	if config.TransportProtocol == nil {
+		config.TransportProtocol = &defaultTransportProtocol
+	}
+
+	// Set defaults for TLSConfig
+	if config.TLS == nil {
+		config.TLS = &TLSConfig{}
+	}
+
 }
 
 type Duration struct {
