@@ -18,6 +18,7 @@ type DiameterConfig struct {
 	AuthApplicationId           *[]uint32                            `json:"authApplicationId,omitempty"`
 	VendorSpecificApplicationID *[]VendorSpecificApplicationIDConfig `json:"vendorSpecificApplicationId,omitempty"`
 	TransportProtocol           *string                              `josn:"transportProtocol,omitempty"`
+	TLS                         *TLSConfig                           `json:"tls,omitempty"`
 	CapabilityExchange          *CapabilityExchangeConfig            `json:"capabilityExchange,omitempty"`
 }
 
@@ -34,6 +35,12 @@ type CapabilityExchangeConfig struct {
 	OriginRealm      *string   `json:"originRealm,omitempty"`
 	FirmwareRevision *uint32   `json:"firmwareRevision,omitempty"`
 	HostIPAddresses  *[]string `json:"hostIPAddresses,omitempty"`
+}
+
+type TLSConfig struct {
+	Enable bool   `json:"enable"`
+	Cert   string `json:"cert,omitempty"`
+	Key    string `json:"key,omitempty"`
 }
 
 func parseConfig(arg map[string]interface{}) (*DiameterConfig, error) {
@@ -106,6 +113,11 @@ func setDiameterConfigDefaults(config *DiameterConfig) {
 	}
 	if config.TransportProtocol == nil {
 		config.TransportProtocol = &defaultTransportProtocol
+	}
+
+	// Set defaults for TLSConfig
+	if config.TLS == nil {
+		config.TLS = &TLSConfig{}
 	}
 
 	// Set defaults for CapabilityExchangeConfig

@@ -26,6 +26,9 @@ type DiameterClient struct {
 	transportProtocol string
 	metrics           DiameterMetrics
 	vu                modules.VU
+	tls               bool
+	tlsCert           string
+	tlsKey            string
 }
 
 type DiameterMessage struct {
@@ -126,6 +129,9 @@ func (d *Diameter) XClient(arg map[string]interface{}) (*DiameterClient, error) 
 		transportProtocol: *config.TransportProtocol,
 		metrics:           d.metrics,
 		vu:                d.vu,
+		tls:               config.TLS.Enable,
+		tlsCert:           config.TLS.Cert,
+		tlsKey:            config.TLS.Key,
 	}, nil
 }
 
@@ -146,7 +152,13 @@ func (c *DiameterClient) Connect(address string) error {
 		return nil
 	}
 
-	conn, err := c.client.DialNetwork(c.transportProtocol, address)
+	var conn diam.Conn
+	var err error
+	if c.tls {
+		conn, err = c.client.DialNetworkTLS(c.transportProtocol, address, c.tlsCert, c.tlsKey, nil)
+	} else {
+		conn, err = c.client.DialNetwork(c.transportProtocol, address)
+	}
 	if err != nil {
 		log.Errorf("Error connecting to %s, %v\n", address, err)
 		return err
