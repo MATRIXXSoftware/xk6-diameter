@@ -66,7 +66,7 @@ Alternatively, you may run xk6-diameter packaged in Docker using the following c
 docker run \
   --net=host \
   -v $(pwd)/example:/mnt/example \
-  ghcr.io/matrixxsoftware/xk6-diameter run --logformat=raw /mnt/example/example.js  
+  ghcr.io/matrixxsoftware/xk6-diameter run --log-format=raw /mnt/example/example.js  
 ```
 
 ## Generator
