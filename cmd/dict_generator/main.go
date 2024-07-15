@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"strings"
+	"unicode"
 
 	"github.com/fiorix/go-diameter/v4/diam/dict"
 	log "github.com/sirupsen/logrus"
@@ -84,6 +85,9 @@ func PrintAvpCode(w io.Writer, parser *dict.Parser) {
 		fmt.Fprintf(w, "    // %s\n", app.Name)
 		for _, avp := range app.AVP {
 			name := strings.ReplaceAll(avp.Name, "-", "")
+			if unicode.IsDigit(rune(name[0])) {
+			    name = "_" + name
+			}
 			fmt.Fprintf(w, "    %-45s %d,\n", name+":", avp.Code)
 		}
 	}
