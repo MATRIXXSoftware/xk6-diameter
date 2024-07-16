@@ -85,7 +85,7 @@ func PrintAvpCode(w io.Writer, parser *dict.Parser) {
 		fmt.Fprintf(w, "    // %s\n", app.Name)
 		for _, avp := range app.AVP {
 			name := strings.ReplaceAll(avp.Name, "-", "")
-			if !(unicode.IsLetter(rune(name[0])) || rune(name[0]) == '_') {
+			if len(name) != 0 && unicode.IsDigit(rune(name[0])) {
 			    name = "_" + name
 			}
 			fmt.Fprintf(w, "    %-45s %d,\n", name+":", avp.Code)
