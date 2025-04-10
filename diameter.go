@@ -213,9 +213,15 @@ func (c *DiameterClient) Send(msg *DiameterMessage) (*DiameterMessage, error) {
 	}
 }
 
-func (*Diameter) NewMessage(cmd uint32, appid uint32) *DiameterMessage {
+func (*Diameter) NewRequest(cmd uint32, appid uint32) *DiameterMessage {
 	return &DiameterMessage{
 		diamMsg: diam.NewRequest(cmd, appid, dict.Default),
+	}
+}
+
+func (*Diameter) NewMessage(cmd uint32, appid uint32, flags uint8) *DiameterMessage {
+	return &DiameterMessage{
+		diamMsg: diam.NewMessage(cmd, flags, appid, 0, 0, dict.Default),
 	}
 }
 

@@ -29,7 +29,7 @@ let client = diam.Client({
 export default function () {
     client.connect("localhost:3868")
 
-    let ccr = diam.newMessage(cmd.CreditControl, app.ChargingControl);
+    let ccr = diam.newRequest(cmd.CreditControl, app.ChargingControl);
     ccr.add(avp.New(code.OriginHost,         0,     0,       data.DiameterIdentity("origin.host")))
     ccr.add(avp.New(code.OriginRealm,        0,     0,       data.DiameterIdentity("origin.realm")))
     ccr.add(avp.New(code.DestinationHost,    0,     0,       data.DiameterIdentity("dest.host")))

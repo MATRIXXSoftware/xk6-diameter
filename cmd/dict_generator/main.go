@@ -42,6 +42,7 @@ func main() {
 	defer w.Close()
 
 	PrintCmd(w)
+	PrintCmdFlags(w)
 	PrintAppId(w)
 	PrintFlags(w)
 	PrintAvpCode(w, parser)
@@ -66,6 +67,16 @@ func PrintCmd(w io.Writer) {
 	fmt.Fprintf(w, "    %-20s %d,\n", "ReAuth:", 258)
 	fmt.Fprintf(w, "    %-20s %d,\n", "SessionTermination:", 275)
 	fmt.Fprintf(w, "    %-20s %d,\n", "SpendingLimit:", 8388635)
+	fmt.Fprintf(w, "}\n")
+	fmt.Fprintf(w, "\n")
+}
+
+func PrintCmdFlags(w io.Writer) {
+	fmt.Fprintf(w, "export const cmdFlag = {\n")
+	fmt.Fprintf(w, "    %-20s 0x%x, // request bit\n", "Request:", 1 << 7)
+	fmt.Fprintf(w, "    %-20s 0x%x, // proxiable bit\n", "Proxiable:", 1 << 6)
+	fmt.Fprintf(w, "    %-20s 0x%x, // error bit\n", "Error:", 1 << 5)
+	fmt.Fprintf(w, "    %-20s 0x%x, // re-transmitted bit\n", "Retransmit:", 1 << 4)
 	fmt.Fprintf(w, "}\n")
 	fmt.Fprintf(w, "\n")
 }
