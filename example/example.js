@@ -1,7 +1,7 @@
 import diam from 'k6/x/diameter'
 import avp from 'k6/x/diameter/avp'
 import dict from 'k6/x/diameter/dict'
-import { cmd, app, code, flag, vendor } from './diam/const.js'
+import { cmd, cmdFlag, app, code, flag, vendor } from './diam/const.js'
 import { check } from 'k6'
 
 export let options = {
@@ -32,7 +32,7 @@ let client = diam.Client({
 export default function () {
     client.connect("localhost:3868")
 
-    let ccr = diam.newMessage(cmd.CreditControl, app.ChargingControl);
+    let ccr = diam.newMessage(cmd.CreditControl, app.ChargingControl, cmdFlag.Request);
     ccr.add(avp.New(code.OriginHost,         0,     0,       data.DiameterIdentity("origin.host")))
     ccr.add(avp.New(code.OriginRealm,        0,     0,       data.DiameterIdentity("origin.realm")))
     ccr.add(avp.New(code.DestinationHost,    0,     0,       data.DiameterIdentity("dest.host")))

@@ -3,6 +3,13 @@ export const cmd = {
     CreditControl:       272,
 }
 
+export const cmdFlag = {
+    Request:             0x80, // request bit
+    Proxiable:           0x40, // proxiable bit
+    Error:               0x20, // error bit
+    Retransmit:          0x10, // re-transmitted bit
+}
+
 export const app = {
     Accounting:          3,
     ChargingControl:     4,
