@@ -360,7 +360,7 @@ func (d *DataType) XInteger64(value int64) datatype.Type {
 	return datatype.Integer64(value)
 }
 
-func (d *DataType) XOctetString(value string) datatype.Type {
+func (d *DataType) XOctetString(value []byte) datatype.Type {
 	return datatype.OctetString(value)
 }
 
