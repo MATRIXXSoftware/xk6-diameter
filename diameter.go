@@ -310,7 +310,7 @@ func (*Diameter) XDataType() DataType {
 	return DataType{}
 }
 
-func (d *DataType) XAddress(value string) datatype.Type {
+func (d *DataType) XAddress(value []byte) datatype.Type {
 	return datatype.Address(value)
 }
 
